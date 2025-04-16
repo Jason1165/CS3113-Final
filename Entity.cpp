@@ -41,9 +41,6 @@ Entity::Entity()
     m_animation_rows(0), m_animation_indices({}), m_animation_time(0.0f),
     m_texture_id(0), m_velocity(0.0f), m_acceleration(0.0f), m_width(0.0f), m_height(0.0f)
 {
-    // Initialize m_walking with zeros or any default value
-    //for (int i = 0; i < SECONDS_PER_FRAME; ++i)
-    //    for (int j = 0; j < SECONDS_PER_FRAME; ++j) m_walking[i][j] = 0;
 }
 
 // THE ONE BEING USED
@@ -60,7 +57,6 @@ Entity::Entity(GLuint texture_id, float speed, glm::vec3 acceleration, std::vect
 {
     set_walking(walking);
     face_right();
-
 }
 
 // Simpler constructor for partial initialization
@@ -70,9 +66,6 @@ Entity::Entity(GLuint texture_id, float speed, float width, float height, Entity
     m_animation_rows(0), m_animation_indices({}), m_animation_time(0.0f),
     m_texture_id(texture_id), m_velocity(0.0f), m_acceleration(0.0f), m_width(width), m_height(height), m_entity_type(EntityType)
 {
-    // Initialize m_walking with zeros or any default value
-    //for (int i = 0; i < SECONDS_PER_FRAME; ++i)
-    //    for (int j = 0; j < SECONDS_PER_FRAME; ++j) m_walking[i][j] = 0;
 }
 
 Entity::Entity(GLuint texture_id, float speed, float width, float height, EntityType EntityType, AIType AIType, AIState AIState) : m_position(0.0f), m_movement(0.0f), m_scale(1.0f, 1.0f, 0.0f), m_model_matrix(1.0f),
@@ -80,9 +73,6 @@ m_speed(speed), m_animation_cols(0), m_animation_frames(0), m_animation_index(0)
 m_animation_rows(0), m_animation_indices({}), m_animation_time(0.0f),
 m_texture_id(texture_id), m_velocity(0.0f), m_acceleration(0.0f), m_width(width), m_height(height), m_entity_type(EntityType), m_ai_type(AIType), m_ai_state(AIState)
 {
-    // Initialize m_walking with zeros or any default value
-    //for (int i = 0; i < SECONDS_PER_FRAME; ++i)
-    //    for (int j = 0; j < SECONDS_PER_FRAME; ++j) m_walking[i][j] = 0;
 }
 
 Entity::~Entity() {
@@ -220,19 +210,19 @@ void const Entity::check_collision_y(Map* map)
     float penetration_y = 0;
 
     // If the map is solid, check the top three points
-    if (map->is_solid(top, &penetration_x, &penetration_y) && m_velocity.y > 0)
+    if (map->is_solid(top, &penetration_x, &penetration_y) && m_velocity.y >= 0)
     {
         m_position.y -= penetration_y;
         m_velocity.y = 0;
         m_collided_top = true;
     }
-    else if (map->is_solid(top_left, &penetration_x, &penetration_y) && m_velocity.y > 0)
+    else if (map->is_solid(top_left, &penetration_x, &penetration_y) && m_velocity.y >= 0)
     {
         m_position.y -= penetration_y;
         m_velocity.y = 0;
         m_collided_top = true;
     }
-    else if (map->is_solid(top_right, &penetration_x, &penetration_y) && m_velocity.y > 0)
+    else if (map->is_solid(top_right, &penetration_x, &penetration_y) && m_velocity.y >= 0)
     {
         m_position.y -= penetration_y;
         m_velocity.y = 0;
@@ -240,19 +230,19 @@ void const Entity::check_collision_y(Map* map)
     }
 
     // And the bottom three points
-    if (map->is_solid(bottom, &penetration_x, &penetration_y) && m_velocity.y < 0)
+    if (map->is_solid(bottom, &penetration_x, &penetration_y) && m_velocity.y <= 0)
     {
         m_position.y += penetration_y;
         m_velocity.y = 0;
         m_collided_bottom = true;
     }
-    else if (map->is_solid(bottom_left, &penetration_x, &penetration_y) && m_velocity.y < 0)
+    else if (map->is_solid(bottom_left, &penetration_x, &penetration_y) && m_velocity.y <= 0)
     {
         m_position.y += penetration_y;
         m_velocity.y = 0;
         m_collided_bottom = true;
     }
-    else if (map->is_solid(bottom_right, &penetration_x, &penetration_y) && m_velocity.y < 0)
+    else if (map->is_solid(bottom_right, &penetration_x, &penetration_y) && m_velocity.y <= 0)
     {
         m_position.y += penetration_y;
         m_velocity.y = 0;
@@ -269,13 +259,13 @@ void const Entity::check_collision_x(Map* map)
     float penetration_x = 0;
     float penetration_y = 0;
 
-    if (map->is_solid(left, &penetration_x, &penetration_y) && m_velocity.x < 0)
+    if (map->is_solid(left, &penetration_x, &penetration_y) && m_velocity.x <= 0)
     {
         m_position.x += penetration_x;
         m_velocity.x = 0;
         m_collided_left = true;
     }
-    if (map->is_solid(right, &penetration_x, &penetration_y) && m_velocity.x > 0)
+    if (map->is_solid(right, &penetration_x, &penetration_y) && m_velocity.x >= 0)
     {
         m_position.x -= (penetration_x += 0.001f);
         m_velocity.x = 0;
@@ -297,8 +287,8 @@ bool Entity::update(float delta_time, Entity* player, Entity* collidable_entitie
 
     if (!m_animation_indices.empty())
     {
-        if (glm::length(m_movement) != 0)
-        {
+        //if (glm::length(m_movement) != 0)
+        //{
             m_animation_time += delta_time;
             float frames_per_second = (float)1 / SECONDS_PER_FRAME;
 
@@ -312,17 +302,16 @@ bool Entity::update(float delta_time, Entity* player, Entity* collidable_entitie
                     m_animation_index = 0;
                 }
             }
-        }
+        //}
     }
 
     m_velocity.x = m_movement.x * m_speed;
     m_velocity.y = m_movement.y * m_speed;
-    m_velocity += m_acceleration * delta_time;
+    //m_velocity += m_acceleration * delta_time;
 
     // JUMP LOGIC
 
     m_position.y += m_velocity.y * delta_time;
-
     collision_result = collision_result || check_collision_y(collidable_entities, collidable_entity_count);
     check_collision_y(map);
 
@@ -340,7 +329,7 @@ bool Entity::update(float delta_time, Entity* player, Entity* collidable_entitie
 void Entity::render(ShaderProgram* program)
 {
     program->set_model_matrix(m_model_matrix);
-
+    if (!m_is_active) return;
     if (!m_animation_indices.empty())
     {
         draw_sprite_from_texture_atlas(program, m_texture_id, m_animation_indices[m_animation_index]);

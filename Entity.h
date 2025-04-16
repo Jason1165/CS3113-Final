@@ -99,7 +99,7 @@ public:
     void move_right() { m_movement.x = 1.0f;  face_right(); }
     void move_up() { m_movement.y = 1.0f; face_right(); }
     void move_down() { m_movement.y = -1.0f; face_left(); }
-    void move_idle() { m_movement = glm::vec3(0.0f); }
+    void move_idle() { m_movement = glm::vec3(0.0f); face_idle_right(); }
 
     // ----- GETTERS ----- //
     EntityType const get_entity_type()    const { return m_entity_type; }

@@ -23,7 +23,6 @@ struct GameState
 {
     // ----- GAME OBJECTS ----- //
     Map* map;
-    Map* bg_map;
     Entity* player;
     Entity* enemies;
 

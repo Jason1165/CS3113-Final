@@ -114,7 +114,7 @@ void initialise()
     g_shader_program.load(V_SHADER_PATH, F_SHADER_PATH);
 
     g_view_matrix = glm::mat4(1.0f);
-    g_projection_matrix = glm::ortho(-5.0f, 5.0f, -3.75f, 3.75f, -1.0f, 1.0f);
+    g_projection_matrix = glm::ortho(-5.0f*2.0f, 5.0f*2.0f, -3.75f*2.0f, 3.75f*2.0f, -1.0f*2.0f, 1.0f*2.0f);
     g_projection_matrix = g_projection_matrix;
 
     g_shader_program.set_projection_matrix(g_projection_matrix);
@@ -174,21 +174,29 @@ void process_input()
     const Uint8* key_state = SDL_GetKeyboardState(NULL);
     if (g_screen_status == REGULAR)
     {
+        bool pressed = false;
         if (key_state[SDL_SCANCODE_DOWN])
         {
             g_current_scene->get_state().player->move_down();
+            pressed = true;
         }
         if (key_state[SDL_SCANCODE_UP]) 
         {
             g_current_scene->get_state().player->move_up();
+            pressed = true;
         }
         if (key_state[SDL_SCANCODE_LEFT])
         {
             g_current_scene->get_state().player->move_left();
+            pressed = true;
         }
         if (key_state[SDL_SCANCODE_RIGHT])
         {
             g_current_scene->get_state().player->move_right();
+            pressed = true;
+        }
+        if (!pressed) {
+            g_current_scene->get_state().player->move_idle();
         }
     }
 
