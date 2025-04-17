@@ -16,7 +16,7 @@
 Entity::Entity() {
 }
 
-Entity::Entity(GLuint texture_id, std::vector<std::vector<int>> animations, int fps, int animation_frames, int animation_index, int animation_cols, int animation_rows, float width, float height, float speed, int health, int attack)
+Entity::Entity(GLuint texture_id, std::vector<std::vector<int>> animations, int fps, int animation_frames, int animation_index, int animation_cols, int animation_rows, float width, float height, float speed, int health, int attack, float angle, EntityType entity_type)
     : m_texture_id(texture_id),
     m_animation(animations),
     m_frames_per_second(fps),
@@ -25,8 +25,11 @@ Entity::Entity(GLuint texture_id, std::vector<std::vector<int>> animations, int 
     m_animation_cols(animation_cols),
     m_animation_rows(animation_rows),
     m_width(width), m_height(height),
-    m_speed(speed), m_health(health), m_attack(attack)
+    m_speed(speed), m_health(health), m_attack(attack),
+    m_angle(angle),
+    m_entity_type(entity_type)
 {
+    m_offset = glm::vec3(0.0f, -height / 2.0f, 0.0f);
 }
 
 Entity::~Entity() 
@@ -238,6 +241,7 @@ bool Entity::update(float delta_time, Entity* player, Entity* collidable_entitie
     m_collided_right = false;
 
     if (m_entity_type == ENEMY) ai_activate(player, delta_time);
+    if (m_entity_type == WEAPON) weapon_activate(player, delta_time);
 
     if (!m_animation_indices.empty())
     {
@@ -270,6 +274,9 @@ bool Entity::update(float delta_time, Entity* player, Entity* collidable_entitie
 
     m_model_matrix = glm::mat4(1.0f);
     m_model_matrix = glm::translate(m_model_matrix, m_position);
+    m_model_matrix = glm::translate(m_model_matrix, m_offset);
+    m_model_matrix = glm::rotate(m_model_matrix, glm::radians(m_angle), glm::vec3(0.0f, 0.0f, 1.0f));
+    m_model_matrix = glm::translate(m_model_matrix, -m_offset);
     m_model_matrix = glm::scale(m_model_matrix, m_scale);
     return collision_result;
 }
@@ -303,4 +310,57 @@ void Entity::render(ShaderProgram* program)
 void Entity::ai_activate(Entity* player, float delta_time)
 {
 
+}
+
+void Entity::weapon_activate(Entity* player, float delta_time) 
+{
+    float angle = 30;
+
+    // TRANSLATING WEAPON TO THE RIGHT POSITION
+    glm::vec3 position = player->get_position();
+    glm::vec3 offset;
+    float offset_x = player->get_width() * 0.12f;
+    float offset_y = player->get_height() * 0.04f;
+    if (player->get_direction() == RIGHT)
+    {
+        this->face_right();
+        position.x += offset_x;
+        if (m_attack_state == HOLDING) m_angle = -angle;
+    }
+    else 
+    {
+        this->face_left();
+        position.x -= offset_x;
+        if (m_attack_state == HOLDING) m_angle = angle;
+    }
+    position.y += offset_y;
+    this->set_position(position);
+
+    // DEALING WITH ACTUALLY ATTACKING
+
+
+    float left_min = 0 + angle;
+    float left_max = 180 - angle;
+    float right_min = 0 - angle;
+    float right_max = -180 + angle;
+    switch (m_attack_state) {
+    case HOLDING:
+        break;
+    case SWINGING:
+        if (m_angle <= right_min && m_angle >= right_max) 
+        {
+            m_angle -= 5;
+        }
+        else if (m_angle >= left_min && m_angle <= left_max) 
+        {
+            m_angle += 5;
+        }
+        else 
+        {
+            this->set_attack_state(HOLDING);
+        }
+        break;
+    default:
+        break;
+    }
 }

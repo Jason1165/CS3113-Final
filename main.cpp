@@ -164,6 +164,12 @@ void process_input()
                 // Quit the game with a keystroke
                 g_app_status = TERMINATED;
                 break;
+            case SDLK_x:
+                if (g_current_scene->get_state().weapon->get_attack_state() == HOLDING)
+                {
+                    g_current_scene->get_state().weapon->set_attack_state(SWINGING);
+                }
+                break;
             default:
                 break;
             }
