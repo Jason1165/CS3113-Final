@@ -7,7 +7,7 @@
 #include "SDL_mixer.h"
 
 enum EntityType { PLAYER, ENEMY, WEAPON };
-enum AttackState { HOLDING, SWINGING };
+enum AttackState { HOLDING, SWINGING, ATTACKING };
 enum AIType {};
 enum AIState {};
 
@@ -72,6 +72,7 @@ protected:
 	int m_health;
 	int m_attack;
 	float m_attack_speed;
+	float m_last_attack = 0.0f;
 
 public:
 	Entity();
@@ -95,6 +96,15 @@ public:
 	void weapon_activate(Entity* player, float delta_time);
 
 	void normalise_movement() { m_movement = glm::normalize(m_movement); }
+
+	// ----- SEPARATING AXIS THEOREM ----- //
+	std::vector<glm::vec2> get_corners();
+	std::vector<glm::vec2> get_edges();
+	std::vector<glm::vec2> get_normals();
+
+	std::pair<float, float> get_min_max_x();
+	std::pair<float, float> get_min_max_y();
+	bool check_collision_SAT(Entity* other);
 
 
 	// ----- ANIMATION INDEX ----- //

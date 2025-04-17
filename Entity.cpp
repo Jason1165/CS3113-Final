@@ -315,7 +315,6 @@ void Entity::ai_activate(Entity* player, float delta_time)
 void Entity::weapon_activate(Entity* player, float delta_time) 
 {
     float angle = 30;
-
     // TRANSLATING WEAPON TO THE RIGHT POSITION
     glm::vec3 position = player->get_position();
     glm::vec3 offset;
@@ -337,16 +336,19 @@ void Entity::weapon_activate(Entity* player, float delta_time)
     this->set_position(position);
 
     // DEALING WITH ACTUALLY ATTACKING
-
-
     float left_min = 0 + angle;
     float left_max = 180 - angle;
     float right_min = 0 - angle;
     float right_max = -180 + angle;
     switch (m_attack_state) {
     case HOLDING:
+        m_last_attack += delta_time;
         break;
     case SWINGING:
+        if (m_last_attack <= m_attack_speed) { m_attack_state = HOLDING; m_last_attack += delta_time; }
+        else { m_last_attack = 0.0f; m_attack_state = ATTACKING; }
+        break;
+    case ATTACKING:
         if (m_angle <= right_min && m_angle >= right_max) 
         {
             m_angle -= 5;
@@ -357,10 +359,142 @@ void Entity::weapon_activate(Entity* player, float delta_time)
         }
         else 
         {
-            this->set_attack_state(HOLDING);
+            m_attack_state = HOLDING;
         }
         break;
     default:
         break;
     }
+}
+
+
+// ----- COLLISION STUFF ----- //
+
+std::vector<glm::vec2> Entity::get_corners()
+{
+    std::vector<glm::vec2> corners;
+    float half_width = m_width / 2.0f;
+    float half_height = m_height / 2.0f;
+
+    std::vector<glm::vec2> local_corners = 
+    {
+        {-half_width,  half_height},        // Top-left
+        { half_width,  half_height},        // Top-right
+        { half_width, -half_height},        // Bottom-right
+        {-half_width, -half_height}         // Bottom-left
+    };
+
+    float angle_rad = glm::radians(m_angle);
+    float cos_theta = glm::cos(angle_rad);
+    float sin_theta = glm::sin(angle_rad);
+
+    for (auto& vertex : local_corners)
+    {
+        float local_x = vertex.x;
+        float local_y = vertex.y;
+
+        float rotated_x = cos_theta * local_x - sin_theta * local_y;
+        float rotated_y = sin_theta * local_x + cos_theta * local_y;
+
+        corners.push_back(glm::vec2(m_position.x + rotated_x, m_position.y + rotated_y));
+    }
+
+    return corners;
+}
+
+std::vector<glm::vec2> Entity::get_edges()
+{
+    std::vector<glm::vec2> corners = get_corners();
+    std::vector<glm::vec2> edges;
+
+    for (size_t i = 0; i < corners.size(); i++) { edges.push_back(corners[(i + 1) % corners.size()] - corners[i]); }
+
+    return edges;
+}
+
+std::vector<glm::vec2> Entity::get_normals()
+{
+    std::vector<glm::vec2> edges = get_edges();
+    std::vector<glm::vec2> normals;
+
+    for (auto& edge : edges) { normals.push_back(glm::vec2(-edge.y, edge.x)); }
+
+    // Normalize all the normals
+    for (auto& normal : normals) { normal = glm::normalize(normal); }
+
+    return normals;
+}
+
+bool Entity::check_collision_SAT(Entity* other)
+{
+    // get the entity corners to project onto the axes
+    std::vector<glm::vec2> self_corners = this->get_corners();
+    std::vector<glm::vec2> other_corners = other->get_corners();
+
+    // get the axes
+    std::vector<glm::vec2> self_normals = this->get_normals();
+    std::vector<glm::vec2> other_normals = other->get_normals();
+
+    // append axes to one list
+    std::vector<glm::vec2> axes;
+    axes.insert(axes.end(), self_normals.begin(), self_normals.end());
+    axes.insert(axes.end(), other_normals.begin(), other_normals.end());
+
+    // for every axis
+    for (auto& axis : axes)
+    {
+        // calculate the min and max projection onto an axis for each object
+        float minA = INFINITY, maxA = -INFINITY;
+        float minB = INFINITY, maxB = -INFINITY;
+
+        for (auto& vertex : self_corners)
+        {
+            float proj = glm::dot(vertex, axis);
+            minA = std::min(minA, proj);
+            maxA = std::max(maxA, proj);
+        }
+
+        for (auto& vertex : other_corners)
+        {
+            float proj = glm::dot(vertex, axis);
+            minB = std::min(minB, proj);
+            maxB = std::max(maxB, proj);
+        }
+
+        // if an axis is found no collision
+        if (maxA < minB || maxB < minA) {
+            return false;
+        }
+    }
+
+    // no valid axis so collision
+    return true;
+}
+
+// helper method to get min/max
+// used by valid collision and update
+std::pair<float, float> Entity::get_min_max_x()
+{
+    std::vector<glm::vec2> corners = this->get_corners();
+    float mini = INFINITY, maxi = -INFINITY;
+    for (auto& vertex : corners) 
+    {
+        mini = glm::min(mini, vertex.x);
+        maxi = glm::max(maxi, vertex.x);
+    }
+    std::pair<float, float> val = std::make_pair(mini, maxi);
+    return val;
+}
+
+std::pair<float, float> Entity::get_min_max_y()
+{
+    std::vector<glm::vec2> corners = this->get_corners();
+    float mini = INFINITY, maxi = -INFINITY;
+    for (auto& vertex : corners) 
+    {
+        mini = glm::min(mini, vertex.y);
+        maxi = glm::max(maxi, vertex.y);
+    }
+    std::pair<float, float> val = std::make_pair(mini, maxi);
+    return val;
 }
