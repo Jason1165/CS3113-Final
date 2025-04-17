@@ -32,9 +32,11 @@ const float WINDOW_SCALE = 1.5f;
 const int WINDOW_WIDTH = 640 * WINDOW_SCALE;
 const int WINDOW_HEIGHT = 480 * WINDOW_SCALE;
 
-const float BG_RED = 1.0f;
-const float BG_BLUE = 1.0f;
-const float BG_GREEN = 1.0f;
+const float ORTHO_SCALE = 1.5f;
+
+const float BG_RED = 0.0f;
+const float BG_BLUE = 0.0f;
+const float BG_GREEN = 0.0f;
 const float BG_OPACITY = 1.0f;
 
 const int   VIEWPORT_X = 0,
@@ -114,7 +116,7 @@ void initialise()
     g_shader_program.load(V_SHADER_PATH, F_SHADER_PATH);
 
     g_view_matrix = glm::mat4(1.0f);
-    g_projection_matrix = glm::ortho(-5.0f*2.0f, 5.0f*2.0f, -3.75f*2.0f, 3.75f*2.0f, -1.0f*2.0f, 1.0f*2.0f);
+    g_projection_matrix = glm::ortho(-5.0f*ORTHO_SCALE, 5.0f*ORTHO_SCALE, -3.75f*ORTHO_SCALE, 3.75f*ORTHO_SCALE, -1.0f*ORTHO_SCALE, 1.0f*ORTHO_SCALE);
     g_projection_matrix = g_projection_matrix;
 
     g_shader_program.set_projection_matrix(g_projection_matrix);
@@ -239,6 +241,9 @@ void update()
 void render()
 {
     g_shader_program.set_view_matrix(g_view_matrix);
+    
+    // dont need the next line cause setting view matrix already does that ig
+    // g_shader_program.set_light_position_matrix(g_current_scene->get_state().player->get_position());
 
     glClear(GL_COLOR_BUFFER_BIT);
 

@@ -1,13 +1,3 @@
-/**
-* Author: Jason Lin
-* Assignment: Rise of the AI
-* Date due: 2025-04-05, 11:59pm
-* I pledge that I have completed this assignment without
-* collaborating with anyone else, in conformance with the
-* NYU School of Engineering Policies and Procedures on
-* Academic Misconduct.
-**/
-
 #define GL_SILENCE_DEPRECATION
 #define STB_IMAGE_IMPLEMENTATION
 
@@ -23,60 +13,24 @@
 #include "ShaderProgram.h"
 #include "Entity.h"
 
-// added delta_time as a param but turns out i never really needed to use it
-void Entity::ai_activate(Entity* player, float delta_time)
-{
-    switch (m_ai_type)
-    {
-    default:
-        break;
-    }
+Entity::Entity() {
 }
 
-// Default constructor
-// changed m_animation_indices from nullptr to nothing
-Entity::Entity()
-    : m_position(0.0f), m_movement(0.0f), m_scale(1.0f, 1.0f, 0.0f), m_model_matrix(1.0f),
-    m_speed(0.0f), m_animation_cols(0), m_animation_frames(0), m_animation_index(0),
-    m_animation_rows(0), m_animation_indices({}), m_animation_time(0.0f),
-    m_texture_id(0), m_velocity(0.0f), m_acceleration(0.0f), m_width(0.0f), m_height(0.0f)
+Entity::Entity(GLuint texture_id, std::vector<std::vector<int>> animations, int fps, int animation_frames, int animation_index, int animation_cols, int animation_rows, float width, float height, float speed, int health, int attack)
+    : m_texture_id(texture_id),
+    m_animation(animations),
+    m_frames_per_second(fps),
+    m_animation_frames(animation_frames),
+    m_animation_index(animation_index),
+    m_animation_cols(animation_cols),
+    m_animation_rows(animation_rows),
+    m_width(width), m_height(height),
+    m_speed(speed), m_health(health), m_attack(attack)
 {
 }
 
-// THE ONE BEING USED
-// Parameterized constructor
-Entity::Entity(GLuint texture_id, float speed, glm::vec3 acceleration, std::vector<std::vector<int>> walking, float animation_time,
-    int animation_frames, int animation_index, int animation_cols,
-    int animation_rows, float width, float height, EntityType EntityType)
-    : m_position(0.0f), m_movement(0.0f), m_scale(1.0f, 1.0f, 0.0f), m_model_matrix(1.0f),
-    m_speed(speed), m_acceleration(acceleration), m_animation_cols(animation_cols),
-    m_animation_frames(animation_frames), m_animation_index(animation_index),
-    m_animation_rows(animation_rows), m_animation_indices({}),
-    m_animation_time(animation_time), m_texture_id(texture_id), m_velocity(0.0f),
-    m_width(width), m_height(height), m_entity_type(EntityType)
+Entity::~Entity() 
 {
-    set_walking(walking);
-    face_right();
-}
-
-// Simpler constructor for partial initialization
-Entity::Entity(GLuint texture_id, float speed, float width, float height, EntityType EntityType)
-    : m_position(0.0f), m_movement(0.0f), m_scale(1.0f, 1.0f, 0.0f), m_model_matrix(1.0f),
-    m_speed(speed), m_animation_cols(0), m_animation_frames(0), m_animation_index(0),
-    m_animation_rows(0), m_animation_indices({}), m_animation_time(0.0f),
-    m_texture_id(texture_id), m_velocity(0.0f), m_acceleration(0.0f), m_width(width), m_height(height), m_entity_type(EntityType)
-{
-}
-
-Entity::Entity(GLuint texture_id, float speed, float width, float height, EntityType EntityType, AIType AIType, AIState AIState) : m_position(0.0f), m_movement(0.0f), m_scale(1.0f, 1.0f, 0.0f), m_model_matrix(1.0f),
-m_speed(speed), m_animation_cols(0), m_animation_frames(0), m_animation_index(0),
-m_animation_rows(0), m_animation_indices({}), m_animation_time(0.0f),
-m_texture_id(texture_id), m_velocity(0.0f), m_acceleration(0.0f), m_width(width), m_height(height), m_entity_type(EntityType), m_ai_type(AIType), m_ai_state(AIState)
-{
-}
-
-Entity::~Entity() {
-    Mix_FreeChunk(m_sound_sfx);
 }
 
 void Entity::draw_sprite_from_texture_atlas(ShaderProgram* program, GLuint texture_id, int index)
@@ -287,29 +241,24 @@ bool Entity::update(float delta_time, Entity* player, Entity* collidable_entitie
 
     if (!m_animation_indices.empty())
     {
-        //if (glm::length(m_movement) != 0)
-        //{
-            m_animation_time += delta_time;
-            float frames_per_second = (float)1 / SECONDS_PER_FRAME;
+        m_animation_time += delta_time;
+        float seconds_per_frame = (float)1 / m_frames_per_second;
 
-            if (m_animation_time >= frames_per_second)
+        if (m_animation_time >= seconds_per_frame)
+        {
+            m_animation_time = 0.0f;
+            m_animation_index++;
+
+            if (m_animation_index >= m_animation_frames)
             {
-                m_animation_time = 0.0f;
-                m_animation_index++;
-
-                if (m_animation_index >= m_animation_frames)
-                {
-                    m_animation_index = 0;
-                }
+                m_animation_index = 0;
             }
-        //}
+        }
     }
 
     m_velocity.x = m_movement.x * m_speed;
     m_velocity.y = m_movement.y * m_speed;
-    //m_velocity += m_acceleration * delta_time;
 
-    // JUMP LOGIC
 
     m_position.y += m_velocity.y * delta_time;
     collision_result = collision_result || check_collision_y(collidable_entities, collidable_entity_count);
@@ -324,7 +273,6 @@ bool Entity::update(float delta_time, Entity* player, Entity* collidable_entitie
     m_model_matrix = glm::scale(m_model_matrix, m_scale);
     return collision_result;
 }
-
 
 void Entity::render(ShaderProgram* program)
 {
@@ -350,4 +298,9 @@ void Entity::render(ShaderProgram* program)
 
     glDisableVertexAttribArray(program->get_position_attribute());
     glDisableVertexAttribArray(program->get_tex_coordinate_attribute());
+}
+
+void Entity::ai_activate(Entity* player, float delta_time)
+{
+
 }

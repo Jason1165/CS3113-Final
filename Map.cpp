@@ -9,12 +9,18 @@ Map::Map(int width, int height, unsigned int* level_data, GLuint texture_id, flo
 void Map::build()
 {
     // Since this is a 2D map, we need a nested for-loop
+    std::srand(std::time({}));
     for (int y_coord = 0; y_coord < m_height; y_coord++)
     {
         for (int x_coord = 0; x_coord < m_width; x_coord++)
         {
             // Get the current tile
             int tile = m_level_data[y_coord * m_width + x_coord];
+            
+            if (tile >= 13 && rand() % 5 == 0) 
+            {
+                tile = rand() % 7 + 13;
+            }
 
             // If the tile number is 0 i.e. not solid, skip to the next one
             if (tile == 0) continue;
