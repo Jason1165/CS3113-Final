@@ -31,6 +31,9 @@ private:
 
     GLuint m_vertex_shader;
     GLuint m_fragment_shader;
+
+    // new stuff
+    GLuint m_light_position_uniform;
     
 public:
 
@@ -45,5 +48,8 @@ public:
     GLuint const get_position_attribute()       const { return m_position_attribute;  };
     GLuint const get_tex_coordinate_attribute() const { return m_tex_coord_attribute; };
     
-    void set_program_id(GLuint program_id)                         { m_program_id = program_id;                   };
+    void set_program_id(GLuint program_id) { m_program_id = program_id;  };
+    
+    // new stuff
+    void set_light_position_matrix(glm::vec3 position);
 };

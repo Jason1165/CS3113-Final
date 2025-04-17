@@ -33,6 +33,8 @@ void ShaderProgram::load(const char *vertex_shader_file, const char *fragment_sh
     
     set_colour(1.0f, 1.0f, 1.0f, 1.0f);
     
+    // new stuff
+    m_light_position_uniform = glGetUniformLocation(m_program_id, "lightPosition");
 }
 
 void ShaderProgram::cleanup()
@@ -110,4 +112,11 @@ void ShaderProgram::set_projection_matrix(const glm::mat4 &matrix)
 {
     glUseProgram(m_program_id);
     glUniformMatrix4fv(m_projection_matrix_uniform, 1, GL_FALSE, &matrix[0][0]);
+}
+
+// new stuff
+void ShaderProgram::set_light_position_matrix(glm::vec3 position)
+{
+    glUseProgram(m_program_id);
+    glUniform2f(m_light_position_uniform, position.x, position.y);
 }
