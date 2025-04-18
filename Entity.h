@@ -7,7 +7,7 @@
 #include "SDL_mixer.h"
 
 enum EntityType { PLAYER, ENEMY, WEAPON };
-enum AttackState { HOLDING, SWINGING, ATTACKING };
+enum AttackState { HOLDING, SWINGING, SWING, CIRCLING, CIRCLE };
 enum AIType {};
 enum AIState {};
 
@@ -71,8 +71,9 @@ protected:
 	float m_speed;
 	int m_health;
 	int m_attack;
-	float m_attack_speed;
 	float m_last_attack = 0.0f;
+	float m_cooldown;
+
 
 public:
 	Entity();
@@ -106,6 +107,8 @@ public:
 	std::pair<float, float> get_min_max_y();
 	bool check_collision_SAT(Entity* other);
 
+	void player_update(Entity* collidable_entities, int collidable_entity_count);
+	bool weapon_update(float delta_time, Entity* collidable_entities, int collidable_entity_count);
 
 	// ----- ANIMATION INDEX ----- //
 	void face_left() { m_animation_indices = m_animation[LEFT]; m_direction = LEFT; }
@@ -145,14 +148,17 @@ public:
 		if (m_direction == LEFT || m_direction == IDLE_LEFT || m_direction == HIT_LEFT) { return LEFT;  }
 		return RIGHT;
 	}
-	float		const get_attack_speed()	const { return m_attack_speed;  }
+	float		const get_cooldown()		const { return m_cooldown;  }
 	AttackState const get_attack_state()	const { return m_attack_state;  }
 	glm::vec3	const get_offset()			const { return m_offset;  }
+	int			const get_hp()				const { return m_health;  }
+	int			const get_attack()			const { return m_attack;  }
+	// -----
 
 	// ----- ACTIVATION ----- //
 	void activate() { m_is_active = true; };
 	void deactivate() { m_is_active = false; };
-	bool get_active() { return m_is_active; };
+	bool is_active() { return m_is_active; };
 
 	// ----- SETTERS ----- //
 	void const set_entity_type(EntityType new_entity_type) { m_entity_type = new_entity_type; }
@@ -175,7 +181,7 @@ public:
 	void const set_width(float new_width) { m_width = new_width; }
 	void const set_height(float new_height) { m_height = new_height; }
 	void const set_angle(float new_angle) { m_angle = new_angle; }
-	void const set_attack_speed(float new_attack_speed) { m_attack_speed = new_attack_speed; }
+	void const set_cooldown(float new_cooldown) { m_cooldown = new_cooldown; }
 	void const set_attack_state(AttackState new_attack_state) { m_attack_state = new_attack_state; }
 	void const set_offset(glm::vec3 new_offset) { m_offset = new_offset;  }
 
@@ -185,6 +191,8 @@ public:
 		Mix_VolumeMusic(MIX_MAX_VOLUME / 2);
 		m_sound_sfx = Mix_LoadWAV(filepath);
 	}
+	void take_damage(int damage) { m_health -= damage;  }
+	// -----
 };
 
 #endif // ENTITY_H

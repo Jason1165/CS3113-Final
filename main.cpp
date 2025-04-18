@@ -170,6 +170,11 @@ void process_input()
                     g_current_scene->get_state().weapon->set_attack_state(SWINGING);
                 }
                 break;
+            case SDLK_c:
+                if (g_current_scene->get_state().weapon->get_attack_state() == HOLDING)
+                {
+                    g_current_scene->get_state().weapon->set_attack_state(CIRCLING);
+                }
             default:
                 break;
             }

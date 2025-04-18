@@ -105,19 +105,20 @@ void LevelA::initialise()
         player_walking_animation,       // animations
         8,                              // frames per second
         4,                              // animation frame amount
-        0,                              // current animation index
+        3,                              // current animation index
         4,                              // animation column amount
         5,                              // animation row amount
         0.8f,                           // width
         1.4f,                           // height
         4.0f,                           // speed
         500,                            // health
-        10,                             // attack
+        0,                             // attack
         0,                              // angle
         PLAYER                          // EntityType
     );
     m_game_state.player->set_position(glm::vec3(1.0f, -1.0f, 0.0f));
     m_game_state.player->set_scale(glm::vec3(0.8f, 1.4f, 1.0f));
+
 
     // -- WEAPON -- //
     GLuint weapon_texture_id = Utility::load_texture(WEAPON_ANIME_SWORD);
@@ -144,13 +145,40 @@ void LevelA::initialise()
     );
     m_game_state.weapon->set_position(glm::vec3(1.0f, -1.0f, 0.0f));
     m_game_state.weapon->set_scale(glm::vec3(0.4f, 1.0f, 1.0f));
-    m_game_state.weapon->set_attack_speed(1.0f);
+    m_game_state.weapon->set_cooldown(0.2f);
     m_game_state.weapon->set_attack_state(HOLDING);
 
     // -- ENEMIES -- //
     m_game_state.enemies = new Entity[LEVELA_ENEMY_COUNT];
-    m_game_state.enemies[0] = Entity();
-    m_game_state.enemies[0].deactivate();
+
+    GLuint big_demon_texture_id = Utility::load_texture(BIG_DEMON_FILEPATH);
+    std::vector<std::vector<int>> big_demon_animation = {
+        {4, 5, 6, 7},
+        {0, 1, 2, 3},
+        {12, 13, 14, 15},
+        {8, 9, 10, 11},
+    };
+
+    m_game_state.enemies[0] = Entity(
+        big_demon_texture_id,
+        big_demon_animation,
+        8,                              // frames per second
+        4,                              // animation frame amount
+        1,                              // current animation index
+        4,                              // animation column amount
+        4,                              // animation row amount
+        0.8f,                           // width
+        0.9f,                           // height
+        4.0f,                           // speed
+        50,                             // health
+        10,                             // attack
+        0,                              // angle
+        ENEMY                           // EntityType
+    );
+
+    m_game_state.enemies[0].set_position(glm::vec3(22.0f, -5.0f, 0.0f));
+    m_game_state.enemies[0].set_scale(glm::vec3(0.8f, 0.9f, 1.0f));
+    //m_game_state.enemies[0].deactivate();
 
 
     /**
@@ -170,6 +198,7 @@ bool LevelA::update(float delta_time)
 {
     bool collide_with_enemy = m_game_state.player->update(delta_time, m_game_state.player, m_game_state.enemies, LEVELA_ENEMY_COUNT, m_game_state.map);
     m_game_state.weapon->update(delta_time, m_game_state.player, m_game_state.enemies, LEVELA_ENEMY_COUNT, m_game_state.map);
+    //std::cout << m_game_state.weapon->get_position().x << " " << m_game_state.weapon->get_position().y << std::endl;
 
     for (int i = 0; i < LEVELA_ENEMY_COUNT; i++)
     {
@@ -182,11 +211,13 @@ bool LevelA::update(float delta_time)
 void LevelA::render(ShaderProgram* program)
 {
     m_game_state.map->render(program);
-    m_game_state.weapon->render(program);
-    m_game_state.player->render(program);
 
     for (int i = 0; i < LEVELA_ENEMY_COUNT; i++)
     {
         m_game_state.enemies[i].render(program);
     }
+
+    m_game_state.weapon->render(program);
+    m_game_state.player->render(program);
+
 }

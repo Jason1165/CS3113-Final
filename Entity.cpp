@@ -30,6 +30,8 @@ Entity::Entity(GLuint texture_id, std::vector<std::vector<int>> animations, int 
     m_entity_type(entity_type)
 {
     m_offset = glm::vec3(0.0f, -height / 2.0f, 0.0f);
+    m_animation_indices = animations[animation_index];
+    m_direction = AnimationDirection(animation_index);
 }
 
 Entity::~Entity() 
@@ -95,8 +97,8 @@ bool const Entity::check_collision_y(Entity* collidable_entities, int collidable
             float y_overlap = fabs(y_distance - (m_height / 2.0f) - (collidable_entity->m_height / 2.0f));
             if (m_velocity.y > 0)
             {
-                m_position.y -= y_overlap;
-                m_velocity.y = 0;
+                //m_position.y -= y_overlap;
+                //m_velocity.y = 0;
 
                 // Collision!
                 m_collided_top = true;
@@ -104,8 +106,8 @@ bool const Entity::check_collision_y(Entity* collidable_entities, int collidable
             }
             else if (m_velocity.y < 0)
             {
-                m_position.y += y_overlap;
-                m_velocity.y = 0;
+                //m_position.y += y_overlap;
+                //m_velocity.y = 0;
 
                 // Collision!
                 m_collided_bottom = true;
@@ -129,8 +131,8 @@ bool const Entity::check_collision_x(Entity* collidable_entities, int collidable
             float x_overlap = fabs(x_distance - (m_width / 2.0f) - (collidable_entity->m_width / 2.0f));
             if (m_velocity.x > 0)
             {
-                m_position.x -= x_overlap;
-                m_velocity.x = 0;
+                //m_position.x -= x_overlap;
+                //m_velocity.x = 0;
 
                 // Collision!
                 m_collided_right = true;
@@ -139,8 +141,8 @@ bool const Entity::check_collision_x(Entity* collidable_entities, int collidable
             }
             else if (m_velocity.x < 0)
             {
-                m_position.x += x_overlap;
-                m_velocity.x = 0;
+                //m_position.x += x_overlap;
+                //m_velocity.x = 0;
 
                 // Collision!
                 m_collided_left = true;
@@ -241,7 +243,11 @@ bool Entity::update(float delta_time, Entity* player, Entity* collidable_entitie
     m_collided_right = false;
 
     if (m_entity_type == ENEMY) ai_activate(player, delta_time);
-    if (m_entity_type == WEAPON) weapon_activate(player, delta_time);
+    if (m_entity_type == WEAPON)
+    {
+        weapon_activate(player, delta_time);
+        collision_result = weapon_update(delta_time, collidable_entities, collidable_entity_count);
+    }
 
     if (!m_animation_indices.empty())
     {
@@ -263,8 +269,8 @@ bool Entity::update(float delta_time, Entity* player, Entity* collidable_entitie
     m_velocity.x = m_movement.x * m_speed;
     m_velocity.y = m_movement.y * m_speed;
 
-
     m_position.y += m_velocity.y * delta_time;
+    // should theoretically not run the latter half if already collided
     collision_result = collision_result || check_collision_y(collidable_entities, collidable_entity_count);
     check_collision_y(map);
 
@@ -317,9 +323,10 @@ void Entity::weapon_activate(Entity* player, float delta_time)
     float angle = 30;
     // TRANSLATING WEAPON TO THE RIGHT POSITION
     glm::vec3 position = player->get_position();
-    glm::vec3 offset;
-    float offset_x = player->get_width() * 0.12f;
+
     float offset_y = player->get_height() * 0.04f;
+    float offset_x = player->get_width() * 0.12f;
+
     if (player->get_direction() == RIGHT)
     {
         this->face_right();
@@ -340,34 +347,68 @@ void Entity::weapon_activate(Entity* player, float delta_time)
     float left_max = 180 - angle;
     float right_min = 0 - angle;
     float right_max = -180 + angle;
+
+    float angle_delta = delta_time * 360.0f;
+
     switch (m_attack_state) {
     case HOLDING:
         m_last_attack += delta_time;
         break;
     case SWINGING:
-        if (m_last_attack <= m_attack_speed) { m_attack_state = HOLDING; m_last_attack += delta_time; }
-        else { m_last_attack = 0.0f; m_attack_state = ATTACKING; }
+        if (m_last_attack <= m_cooldown) { m_attack_state = HOLDING; m_last_attack += delta_time; }
+        else { m_last_attack = 0.0f; m_attack_state = SWING; }
         break;
-    case ATTACKING:
+    case SWING:
         if (m_angle <= right_min && m_angle >= right_max) 
         {
-            m_angle -= 5;
+            m_angle -= angle_delta;
         }
         else if (m_angle >= left_min && m_angle <= left_max) 
         {
-            m_angle += 5;
+            m_angle += angle_delta;
         }
         else 
         {
             m_attack_state = HOLDING;
         }
         break;
+    case CIRCLING:
+        if (m_last_attack <= m_cooldown*20) { m_attack_state = HOLDING; m_last_attack += delta_time; }
+        else { m_last_attack = 0.0f; m_attack_state = CIRCLE; }        
+        break;
+    case CIRCLE:
+        // using m_last_attack as a temp accumulator
+        if (m_last_attack >= 1080.0f) { m_attack_state = HOLDING; m_last_attack = 0.0f; }
+        else { m_angle += angle_delta; m_last_attack += angle_delta; }
     default:
         break;
     }
 }
 
+void Entity::player_update(Entity* collidable_entities, int collidable_entity_count)
+{
 
+}
+
+bool Entity::weapon_update(float delta_time, Entity* collidable_entities, int collidable_entity_count)
+{
+    bool collided = false;
+    for (int i = 0; i < collidable_entity_count; i++)
+    {
+        if (collidable_entities[i].is_active())
+        {
+            if (check_collision_SAT(&collidable_entities[i]))
+            {
+                collided = true;
+                if (collidable_entities[i].get_hp() <= 0) collidable_entities[i].deactivate();
+                else if (m_attack_state == SWING || m_attack_state == CIRCLE) collidable_entities[i].take_damage(m_attack);
+            }
+        }
+    }
+    return collided;
+}
+
+// CODE WRITTEN FROM LUNAR LANDER
 // ----- COLLISION STUFF ----- //
 
 std::vector<glm::vec2> Entity::get_corners()
