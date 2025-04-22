@@ -288,6 +288,8 @@ bool Entity::update(float delta_time, Entity* player, Entity* collidable_entitie
             }
         }
     }
+    // force a normalize here
+    //m_movement = glm::normalize(m_movement);
 
     m_velocity.x = m_movement.x * m_speed;
     m_velocity.y = m_movement.y * m_speed;
@@ -356,7 +358,7 @@ void Entity::ai_guard(Entity* player)
     switch (m_ai_state)
     {
     case IDLE:
-        if (glm::distance(player->get_position(), m_position) <= 5.0f)
+        if (glm::distance(player->get_position(), m_position) <= 8.0f)
         {
             m_ai_state = ATTACK;
         }
@@ -441,7 +443,7 @@ void Entity::weapon_activate(Entity* player, float delta_time)
         break;
     case CIRCLE:
         // using m_last_attack as a temp accumulator
-        if (m_last_attack >= 1800.0f) { m_attack_state = HOLDING; m_last_attack = 0.0f; }
+        if (m_last_attack >= 3600.0f) { m_attack_state = HOLDING; m_last_attack = 0.0f; }
         else { m_angle += angle_delta; m_last_attack += angle_delta; }
     default:
         break;
@@ -470,7 +472,6 @@ bool Entity::player_update(float delta_time, Entity* collidable_entities, int co
                     this->take_damage(collidable_entities[i].get_attack());
                     collidable_entities[i].set_last_attack(0.0f);
                     collided = true;
-                    std::cout << i << std::endl;
                 }
             }
         }
@@ -525,6 +526,12 @@ std::vector<glm::vec2> Entity::get_corners()
     std::vector<glm::vec2> corners;
     float half_width = m_width / 2.0f;
     float half_height = m_height / 2.0f;
+
+    if (m_entity_type == WEAPON)
+    {
+        half_width *= 1.2;
+        half_height *= 1.2;
+    }
 
     std::vector<glm::vec2> local_corners = 
     {

@@ -22,7 +22,6 @@ constexpr char CHORT_FILEPATH[] = "assets/sprites/chort_anim.png"; // 16 x 23, 2
 constexpr char WEAPON_ANIME_SWORD[] = "assets/sprites/weapon_anime_sword.png"; // 12 x 30, 2:5, 1.0f, 2.5f
 
 
-
 unsigned int LEVELA_DATA[] =
 {
     1,2,2,2,2,2,2,2,2,2,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -84,6 +83,7 @@ LevelA::~LevelA()
 void LevelA::initialise()
 {
     m_game_state.next_scene_id = -1;
+    srand(unsigned int(std::time(nullptr)));
 
     // -- MAP -- //
     GLuint map_texture_id = Utility::load_texture(WALLS_FILEPATH);
@@ -139,7 +139,7 @@ void LevelA::initialise()
         1,                              // animation row amount
         0.4f,                           // width
         1.0f,                           // height
-        2.0f,                           // speed
+        3.0f,                           // speed
         0,                              // health
         25,                             // attack
         0,                              // angle
@@ -147,7 +147,7 @@ void LevelA::initialise()
     );
     m_game_state.weapon->set_position(glm::vec3(1.0f, -1.0f, 0.0f));
     m_game_state.weapon->set_scale(glm::vec3(0.4f, 1.0f, 1.0f));
-    m_game_state.weapon->set_attack_cooldown(0.2f);
+    m_game_state.weapon->set_attack_cooldown(0.05f);
     m_game_state.weapon->set_attack_state(HOLDING);
 
 
@@ -177,7 +177,7 @@ void LevelA::initialise()
             enemy_animation,
             8,                              // frames per second
             4,                              // animation frame amount
-            3,                              // current animation index
+            2,                              // current animation index
             4,                              // animation column amount
             4,                              // animation row amount
             chort_width,                    // width
@@ -189,11 +189,13 @@ void LevelA::initialise()
             ENEMY                           // EntityType
         );
 
+        glm::vec3 rand_movement = glm::normalize(glm::vec3(float(rand() % 101) - 50, float(rand() % 101) - 50, 0.0f));
+
         m_game_state.enemies[i].set_position(glm::vec3(20.0f + (1.0f * (i / 5)), -3.0f - (1.0f * (i % 5)), 0.0f));
         m_game_state.enemies[i].set_scale(chort_scale);
         m_game_state.enemies[i].set_attack_cooldown(1.0f);
         m_game_state.enemies[i].set_damage_cooldown(0.20f);
-        m_game_state.enemies[i].set_movement(glm::vec3(0.0f, 0.0f, 0.0f));
+        m_game_state.enemies[i].set_movement(rand_movement);
         m_game_state.enemies[i].set_ai_type(WALKER);
         m_game_state.enemies[i].set_origin(glm::vec3(22.0f, -5.0f, 0.0f));
         m_game_state.enemies[i].set_max_distance(3.0f);
