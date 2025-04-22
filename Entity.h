@@ -8,8 +8,8 @@
 
 enum EntityType { PLAYER, ENEMY, WEAPON };
 enum AttackState { HOLDING, SWINGING, SWING, CIRCLING, CIRCLE };
-enum AIType {};
-enum AIState {};
+enum AIType {GUARD, WALKER};
+enum AIState {IDLE, ATTACK};
 
 enum AnimationDirection { LEFT, RIGHT, IDLE_LEFT, IDLE_RIGHT, HIT_LEFT, HIT_RIGHT };
 
@@ -71,8 +71,15 @@ protected:
 	float m_speed;
 	int m_health;
 	int m_attack;
-	float m_last_attack = 0.0f;
-	float m_cooldown;
+	float m_last_attack = 0.0f; // accumulators
+	float m_last_damage = 0.0f; // accumulators
+	// to be tweak in levels for game balance
+	float m_attack_cooldown; // how fast one can attack
+	float m_damage_cooldown; // how fast one takes damage
+
+	// origin and distance where distance is how far they can stray from the origin
+	glm::vec3 m_origin;
+	float m_distance;
 
 
 public:
@@ -94,6 +101,8 @@ public:
 	void render(ShaderProgram* program);
 
 	void ai_activate(Entity* player, float delta_time);
+	void ai_guard(Entity* player);
+	void ai_walker(Entity* player);
 	void weapon_activate(Entity* player, float delta_time);
 
 	void normalise_movement() { m_movement = glm::normalize(m_movement); }
@@ -102,12 +111,13 @@ public:
 	std::vector<glm::vec2> get_corners();
 	std::vector<glm::vec2> get_edges();
 	std::vector<glm::vec2> get_normals();
+	const void log_corners();
 
 	std::pair<float, float> get_min_max_x();
 	std::pair<float, float> get_min_max_y();
 	bool check_collision_SAT(Entity* other);
 
-	void player_update(Entity* collidable_entities, int collidable_entity_count);
+	bool player_update(float delta_time, Entity* collidable_entities, int collidable_entity_count);
 	bool weapon_update(float delta_time, Entity* collidable_entities, int collidable_entity_count);
 
 	// ----- ANIMATION INDEX ----- //
@@ -148,11 +158,8 @@ public:
 		if (m_direction == LEFT || m_direction == IDLE_LEFT || m_direction == HIT_LEFT) { return LEFT;  }
 		return RIGHT;
 	}
-	float		const get_cooldown()		const { return m_cooldown;  }
-	AttackState const get_attack_state()	const { return m_attack_state;  }
-	glm::vec3	const get_offset()			const { return m_offset;  }
-	int			const get_hp()				const { return m_health;  }
-	int			const get_attack()			const { return m_attack;  }
+	glm::vec3	const get_offset()			const { return m_offset; }
+
 	// -----
 
 	// ----- ACTIVATION ----- //
@@ -181,18 +188,36 @@ public:
 	void const set_width(float new_width) { m_width = new_width; }
 	void const set_height(float new_height) { m_height = new_height; }
 	void const set_angle(float new_angle) { m_angle = new_angle; }
-	void const set_cooldown(float new_cooldown) { m_cooldown = new_cooldown; }
-	void const set_attack_state(AttackState new_attack_state) { m_attack_state = new_attack_state; }
-	void const set_offset(glm::vec3 new_offset) { m_offset = new_offset;  }
-
 	void set_sound(const char* filepath)
 	{
 		Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 4096);
 		Mix_VolumeMusic(MIX_MAX_VOLUME / 2);
 		m_sound_sfx = Mix_LoadWAV(filepath);
 	}
+
+	// ----- ATTACK STUFF
+
+	float		const get_attack_cooldown()	const { return m_attack_cooldown; }
+	float		const get_damage_cooldown() const { return m_damage_cooldown; }
+	float		const get_last_attack()		const { return m_last_attack;  }
+	float		const get_last_damage()		const { return m_last_damage;  }
+	AttackState const get_attack_state()	const { return m_attack_state; }
+	int			const get_hp()				const { return m_health; }
+	int			const get_attack()			const { return m_attack; }
+	float		const get_max_distance()	const { return m_distance;  }
+	glm::vec3	const get_origin()			const { return m_origin; }
+	
+
+	void const set_attack_cooldown(float new_attack_cooldown) { m_attack_cooldown = new_attack_cooldown; }
+	void const set_damage_cooldown(float new_damage_cooldown) { m_damage_cooldown = new_damage_cooldown; }
+	void const set_last_attack(float new_last_attack) { m_last_attack = new_last_attack;  }
+	void const set_last_damage(float new_last_damage) { m_last_damage = new_last_damage;  }
+	void const set_attack_state(AttackState new_attack_state) { m_attack_state = new_attack_state; }
+	void const set_offset(glm::vec3 new_offset) { m_offset = new_offset; }
 	void take_damage(int damage) { m_health -= damage;  }
-	// -----
+	void const set_max_distance(float new_max_distance) { m_distance = new_max_distance;  }
+	void const set_origin(glm::vec3 new_origin) { m_origin = new_origin; }
+
 };
 
 #endif // ENTITY_H

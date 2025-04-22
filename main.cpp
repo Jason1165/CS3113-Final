@@ -164,17 +164,21 @@ void process_input()
                 // Quit the game with a keystroke
                 g_app_status = TERMINATED;
                 break;
-            case SDLK_x:
+            case SDLK_r:
                 if (g_current_scene->get_state().weapon->get_attack_state() == HOLDING)
                 {
                     g_current_scene->get_state().weapon->set_attack_state(SWINGING);
                 }
                 break;
-            case SDLK_c:
+            case SDLK_f:
                 if (g_current_scene->get_state().weapon->get_attack_state() == HOLDING)
                 {
                     g_current_scene->get_state().weapon->set_attack_state(CIRCLING);
                 }
+                break;
+            case SDLK_1:
+                switch_to_scene(g_levels[0]);
+                break;
             default:
                 break;
             }
@@ -188,22 +192,22 @@ void process_input()
     if (g_screen_status == REGULAR)
     {
         bool pressed = false;
-        if (key_state[SDL_SCANCODE_DOWN])
+        if (key_state[SDL_SCANCODE_DOWN] || key_state[SDL_SCANCODE_S])
         {
             g_current_scene->get_state().player->move_down();
             pressed = true;
         }
-        if (key_state[SDL_SCANCODE_UP]) 
+        if (key_state[SDL_SCANCODE_UP] || key_state[SDL_SCANCODE_W])
         {
             g_current_scene->get_state().player->move_up();
             pressed = true;
         }
-        if (key_state[SDL_SCANCODE_LEFT])
+        if (key_state[SDL_SCANCODE_LEFT] || key_state[SDL_SCANCODE_A])
         {
             g_current_scene->get_state().player->move_left();
             pressed = true;
         }
-        if (key_state[SDL_SCANCODE_RIGHT])
+        if (key_state[SDL_SCANCODE_RIGHT] || key_state[SDL_SCANCODE_D])
         {
             g_current_scene->get_state().player->move_right();
             pressed = true;

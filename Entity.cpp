@@ -13,7 +13,12 @@
 #include "ShaderProgram.h"
 #include "Entity.h"
 
-Entity::Entity() {
+Entity::Entity()
+    : m_position(0.0f), m_movement(0.0f), m_scale(1.0f, 1.0f, 0.0f), m_model_matrix(1.0f),
+    m_speed(0.0f), m_animation_cols(0), m_animation_frames(0), m_animation_index(0),
+    m_animation_rows(0), m_animation_indices({}), m_animation_time(0.0f),
+    m_texture_id(0), m_velocity(0.0f), m_acceleration(0.0f), m_width(0.0f), m_height(0.0f), m_origin(0.0f), m_distance(0)
+{
 }
 
 Entity::Entity(GLuint texture_id, std::vector<std::vector<int>> animations, int fps, int animation_frames, int animation_index, int animation_cols, int animation_rows, float width, float height, float speed, int health, int attack, float angle, EntityType entity_type)
@@ -27,7 +32,11 @@ Entity::Entity(GLuint texture_id, std::vector<std::vector<int>> animations, int 
     m_width(width), m_height(height),
     m_speed(speed), m_health(health), m_attack(attack),
     m_angle(angle),
-    m_entity_type(entity_type)
+    m_entity_type(entity_type),
+
+    m_position(0.0f), m_movement(0.0f), m_scale(1.0f, 1.0f, 0.0f), m_model_matrix(1.0f),
+    m_animation_indices({}), m_animation_time(0.0f),
+    m_velocity(0.0f), m_acceleration(0.0f), m_origin(0.0f), m_distance(0)
 {
     m_offset = glm::vec3(0.0f, -height / 2.0f, 0.0f);
     m_animation_indices = animations[animation_index];
@@ -174,18 +183,21 @@ void const Entity::check_collision_y(Map* map)
         m_position.y -= penetration_y;
         m_velocity.y = 0;
         m_collided_top = true;
+        if (this->m_entity_type == ENEMY) { m_movement.y *= -1.0f; }
     }
     else if (map->is_solid(top_left, &penetration_x, &penetration_y) && m_velocity.y >= 0)
     {
         m_position.y -= penetration_y;
         m_velocity.y = 0;
         m_collided_top = true;
+        if (this->m_entity_type == ENEMY) { m_movement.y *= -1.0f; }
     }
     else if (map->is_solid(top_right, &penetration_x, &penetration_y) && m_velocity.y >= 0)
     {
         m_position.y -= penetration_y;
         m_velocity.y = 0;
         m_collided_top = true;
+        if (this->m_entity_type == ENEMY) { m_movement.y *= -1.0f; }
     }
 
     // And the bottom three points
@@ -194,18 +206,21 @@ void const Entity::check_collision_y(Map* map)
         m_position.y += penetration_y;
         m_velocity.y = 0;
         m_collided_bottom = true;
+        if (this->m_entity_type == ENEMY) { m_movement.y *= -1.0f; }
     }
     else if (map->is_solid(bottom_left, &penetration_x, &penetration_y) && m_velocity.y <= 0)
     {
         m_position.y += penetration_y;
         m_velocity.y = 0;
         m_collided_bottom = true;
+        if (this->m_entity_type == ENEMY) { m_movement.y *= -1.0f; }
     }
     else if (map->is_solid(bottom_right, &penetration_x, &penetration_y) && m_velocity.y <= 0)
     {
         m_position.y += penetration_y;
         m_velocity.y = 0;
         m_collided_bottom = true;
+        if (this->m_entity_type == ENEMY) { m_movement.y *= -1.0f; }
     }
 }
 
@@ -223,12 +238,14 @@ void const Entity::check_collision_x(Map* map)
         m_position.x += penetration_x;
         m_velocity.x = 0;
         m_collided_left = true;
+        if (this->m_entity_type == ENEMY) { m_movement.x *= -1.0f; }
     }
     if (map->is_solid(right, &penetration_x, &penetration_y) && m_velocity.x >= 0)
     {
         m_position.x -= (penetration_x += 0.001f);
         m_velocity.x = 0;
         m_collided_right = true;
+        if (this->m_entity_type == ENEMY) { m_movement.x *= -1.0f; }
     }
 }
 
@@ -243,10 +260,16 @@ bool Entity::update(float delta_time, Entity* player, Entity* collidable_entitie
     m_collided_right = false;
 
     if (m_entity_type == ENEMY) ai_activate(player, delta_time);
+    // let the weapon damage the enemies here
     if (m_entity_type == WEAPON)
     {
         weapon_activate(player, delta_time);
-        collision_result = weapon_update(delta_time, collidable_entities, collidable_entity_count);
+        weapon_update(delta_time, collidable_entities, collidable_entity_count);
+    }
+    // let the enemies damage the player here
+    if (m_entity_type == PLAYER) 
+    {
+        player_update(delta_time, collidable_entities, collidable_entity_count);
     }
 
     if (!m_animation_indices.empty())
@@ -315,7 +338,47 @@ void Entity::render(ShaderProgram* program)
 
 void Entity::ai_activate(Entity* player, float delta_time)
 {
+    switch (m_ai_type)
+    {
+    case GUARD:
+        ai_guard(player);
+        break;
+    case WALKER:
+        ai_walker(player);
+        break;
+    default:
+        break;
+    }
+}
 
+void Entity::ai_guard(Entity* player)
+{
+    switch (m_ai_state)
+    {
+    case IDLE:
+        if (glm::distance(player->get_position(), m_position) <= 5.0f)
+        {
+            m_ai_state = ATTACK;
+        }
+        break;
+    case ATTACK:
+        // corners and stuff cause the enemy to get stuck but I am not implementing BFS so
+        glm::vec3 new_pos = player->get_position() - m_position;
+        new_pos = glm::normalize(new_pos);
+        m_movement = new_pos;
+        if (m_movement.x < 0.0f) { face_left(); }
+        else { face_right(); }
+        break;
+    }
+}
+
+void Entity::ai_walker(Entity* player)
+{
+    if (glm::distance(m_position, m_origin) >= m_distance)
+    {
+        m_movement.x *= -1.0f;
+        m_movement.y *= -1.0f;
+    }
 }
 
 void Entity::weapon_activate(Entity* player, float delta_time) 
@@ -344,18 +407,18 @@ void Entity::weapon_activate(Entity* player, float delta_time)
 
     // DEALING WITH ACTUALLY ATTACKING
     float left_min = 0 + angle;
-    float left_max = 180 - angle;
+    float left_max = 180 - (angle/2.0f);
     float right_min = 0 - angle;
-    float right_max = -180 + angle;
+    float right_max = -180 + (angle/2.0f);
 
-    float angle_delta = delta_time * 360.0f;
+    float angle_delta = delta_time * 360.0f * m_speed;
 
     switch (m_attack_state) {
     case HOLDING:
         m_last_attack += delta_time;
         break;
     case SWINGING:
-        if (m_last_attack <= m_cooldown) { m_attack_state = HOLDING; m_last_attack += delta_time; }
+        if (m_last_attack <= m_attack_cooldown) { m_attack_state = HOLDING; m_last_attack += delta_time; }
         else { m_last_attack = 0.0f; m_attack_state = SWING; }
         break;
     case SWING:
@@ -373,21 +436,51 @@ void Entity::weapon_activate(Entity* player, float delta_time)
         }
         break;
     case CIRCLING:
-        if (m_last_attack <= m_cooldown*20) { m_attack_state = HOLDING; m_last_attack += delta_time; }
+        if (m_last_attack <= m_attack_cooldown) { m_attack_state = HOLDING; m_last_attack += delta_time; }
         else { m_last_attack = 0.0f; m_attack_state = CIRCLE; }        
         break;
     case CIRCLE:
         // using m_last_attack as a temp accumulator
-        if (m_last_attack >= 1080.0f) { m_attack_state = HOLDING; m_last_attack = 0.0f; }
+        if (m_last_attack >= 1800.0f) { m_attack_state = HOLDING; m_last_attack = 0.0f; }
         else { m_angle += angle_delta; m_last_attack += angle_delta; }
     default:
         break;
     }
 }
 
-void Entity::player_update(Entity* collidable_entities, int collidable_entity_count)
+bool Entity::player_update(float delta_time, Entity* collidable_entities, int collidable_entity_count)
 {
+    bool collided = false;
+    float curr_damage_time = m_last_damage;
+    curr_damage_time += delta_time;
+    m_last_damage = curr_damage_time;
 
+    // check if player can be damaged by enemy
+    // this is a weird way of calculating things and probably weird interactions
+    for (int i = 0; i < collidable_entity_count; i++)
+    {
+        if (collidable_entities[i].is_active())
+        {
+            if (check_collision_SAT(&collidable_entities[i]))
+            {
+                collidable_entities[i].set_last_attack(collidable_entities[i].get_last_attack() + delta_time);
+                // if enemy can atatck and player can take damage
+                if (collidable_entities[i].get_last_attack() >= collidable_entities[i].get_attack_cooldown() && curr_damage_time >= m_damage_cooldown)
+                {
+                    this->take_damage(collidable_entities[i].get_attack());
+                    collidable_entities[i].set_last_attack(0.0f);
+                    collided = true;
+                    std::cout << i << std::endl;
+                }
+            }
+        }
+    }
+    if (collided) 
+    {
+        m_last_damage = 0.0f;
+    }
+
+    return collided;
 }
 
 bool Entity::weapon_update(float delta_time, Entity* collidable_entities, int collidable_entity_count)
@@ -397,11 +490,27 @@ bool Entity::weapon_update(float delta_time, Entity* collidable_entities, int co
     {
         if (collidable_entities[i].is_active())
         {
+            // accumulate
+            float curr_damage_time = collidable_entities[i].get_last_damage();
+            curr_damage_time += delta_time;
+            collidable_entities[i].set_last_damage(curr_damage_time);
+
             if (check_collision_SAT(&collidable_entities[i]))
             {
                 collided = true;
-                if (collidable_entities[i].get_hp() <= 0) collidable_entities[i].deactivate();
-                else if (m_attack_state == SWING || m_attack_state == CIRCLE) collidable_entities[i].take_damage(m_attack);
+                if (collidable_entities[i].get_hp() <= 0)
+                {
+                    collidable_entities[i].deactivate();
+                }
+                else if (m_attack_state == SWING || m_attack_state == CIRCLE)
+                {
+                    if (curr_damage_time >= collidable_entities[i].get_damage_cooldown())
+                    {
+                        if (m_attack_state == SWING) { collidable_entities[i].take_damage(m_attack * 3); }
+                        if (m_attack_state == CIRCLE) { collidable_entities[i].take_damage(m_attack); }
+                        collidable_entities[i].set_last_damage(0.0f);
+                    }
+                }
             }
         }
     }
@@ -538,4 +647,12 @@ std::pair<float, float> Entity::get_min_max_y()
     }
     std::pair<float, float> val = std::make_pair(mini, maxi);
     return val;
+}
+
+const void Entity::log_corners() {
+    std::vector<glm::vec2> corners = get_corners();
+    for (size_t i = 0; i < corners.size(); i++) {
+        std::cout << "Corner: " << i << " x: " << corners[i].x << " y: " << corners[i].y << std::endl;
+    }
+    std::cout << std::endl;
 }
