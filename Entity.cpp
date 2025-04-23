@@ -289,7 +289,7 @@ bool Entity::update(float delta_time, Entity* player, Entity* collidable_entitie
         }
     }
     // force a normalize here
-    //m_movement = glm::normalize(m_movement);
+    if (glm::length(m_movement) > 1.0f) { m_movement = glm::normalize(m_movement); }
 
     m_velocity.x = m_movement.x * m_speed;
     m_velocity.y = m_movement.y * m_speed;
@@ -348,6 +348,9 @@ void Entity::ai_activate(Entity* player, float delta_time)
     case WALKER:
         ai_walker(player);
         break;
+    case CHARGE:
+        ai_charge(player);
+        break;
     default:
         break;
     }
@@ -378,8 +381,41 @@ void Entity::ai_walker(Entity* player)
 {
     if (glm::distance(m_position, m_origin) >= m_distance)
     {
-        m_movement.x *= -1.0f;
-        m_movement.y *= -1.0f;
+        float x_dist = abs(m_position.x - m_origin.x);
+        float y_dist = abs(m_position.y - m_origin.y);
+        float xy_dist = abs(x_dist - y_dist);
+        if (xy_dist <= m_distance / 8.0f) { m_movement.x *= -1.0f; m_movement.y *= -1.0f; }
+        else if (x_dist > y_dist) { m_movement.x *= -1.0f; }
+        else { m_movement.y *= -1.0f; }
+    }
+    if (m_movement.x > 0.0f) { face_right(); }
+    else { face_left(); }
+}
+
+void Entity::ai_charge(Entity* player) 
+{
+    switch (m_ai_state) {
+    case IDLE:
+        if (glm::distance(m_position, player->get_position()) <= m_distance)
+        {
+            glm::vec3 new_pos = player->get_position() - m_position;
+            new_pos = glm::normalize(new_pos);
+            m_movement = new_pos;
+            if (m_movement.x < 0.0f) { face_left(); }
+            else { face_right(); }
+            m_ai_state = ATTACK;
+        }
+        break;
+    case ATTACK:
+        if (glm::distance(m_position, m_origin) <= 0.5f) 
+        {
+            m_movement = glm::vec3(0.0f);
+            m_ai_state = IDLE;
+        }
+        else if (glm::distance(m_position, m_origin) >= m_distance) {
+            m_movement *= -1.0f;
+        }
+        break;
     }
 }
 
@@ -529,8 +565,8 @@ std::vector<glm::vec2> Entity::get_corners()
 
     if (m_entity_type == WEAPON)
     {
-        half_width *= 1.2;
-        half_height *= 1.2;
+        half_width *= 1.4;
+        half_height *= 1.4;
     }
 
     std::vector<glm::vec2> local_corners = 

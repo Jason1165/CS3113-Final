@@ -8,7 +8,7 @@
 
 enum EntityType { PLAYER, ENEMY, WEAPON };
 enum AttackState { HOLDING, SWINGING, SWING, CIRCLING, CIRCLE };
-enum AIType {GUARD, WALKER};
+enum AIType {GUARD, WALKER, CHARGE};
 enum AIState {IDLE, ATTACK};
 
 enum AnimationDirection { LEFT, RIGHT, IDLE_LEFT, IDLE_RIGHT, HIT_LEFT, HIT_RIGHT };
@@ -103,6 +103,7 @@ public:
 	void ai_activate(Entity* player, float delta_time);
 	void ai_guard(Entity* player);
 	void ai_walker(Entity* player);
+	void ai_charge(Entity* player);
 	void weapon_activate(Entity* player, float delta_time);
 
 	void normalise_movement() { m_movement = glm::normalize(m_movement); }
