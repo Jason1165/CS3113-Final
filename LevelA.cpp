@@ -142,7 +142,7 @@ void LevelA::initialise()
         1.0f,                           // height
         3.0f,                           // speed
         0,                              // health
-        25,                             // attack
+        2500,                             // attack
         0,                              // angle
         WEAPON                          // Entity Type
     );
@@ -256,23 +256,28 @@ void LevelA::initialise()
             1,
             4,
             4,
-            big_demon_width,
-            big_demon_height,
+            big_demon_width*1.2,
+            big_demon_height*1.2,
             6.0f,
-            500,
+            2500,
             15,
             0,
             ENEMY
         );
         m_game_state.enemies[i + 34].set_position(glm::vec3(35.0f, -35.0f, 0.0f));
-        m_game_state.enemies[i + 34].set_scale(big_demon_scale);
+        m_game_state.enemies[i + 34].set_scale(big_demon_scale*1.2f);
         m_game_state.enemies[i + 34].set_attack_cooldown(0.2f);
         m_game_state.enemies[i + 34].set_damage_cooldown(0.10f);
         m_game_state.enemies[i + 34].set_ai_type(CHARGE);
         m_game_state.enemies[i + 34].set_ai_state(IDLE);
         m_game_state.enemies[i + 34].set_origin(glm::vec3(35.0f, -35.0f, 0.0f));
-        m_game_state.enemies[i + 34].set_max_distance(5.5f);
+        m_game_state.enemies[i + 34].set_max_distance(5.0f);
+    }
 
+
+    for (int i = 35; i <= 70; i++)
+    {
+        m_game_state.enemies[i].deactivate();
     }
 
 
@@ -293,27 +298,17 @@ bool LevelA::update(float delta_time)
 {
     bool collide_with_enemy = m_game_state.player->update(delta_time, m_game_state.player, m_game_state.enemies, LEVELA_ENEMY_COUNT, m_game_state.map);
     m_game_state.weapon->update(delta_time, m_game_state.player, m_game_state.enemies, LEVELA_ENEMY_COUNT, m_game_state.map);
-    std::cout << m_game_state.player->get_hp() << std::endl;
 
-
-    levelA_time_accumulator += delta_time;
-    if (levelA_time_accumulator >= 5.0f)
-    {
-        for (int i = 0; i < 1; i++) {
-            if (!m_game_state.enemies[i].is_active()) 
-            {
-                m_game_state.enemies[i] = Entity();
-                m_game_state.enemies[i].activate();
-                levelA_time_accumulator = 0.0f;
-                break;
-            }
-        }
-    }
-
+    spawn_enemy(delta_time);
 
     for (int i = 0; i < LEVELA_ENEMY_COUNT; i++)
     {
         m_game_state.enemies[i].update(delta_time, m_game_state.player, nullptr, 0, m_game_state.map);
+    }
+
+    if (win_condition())
+    {
+        m_game_state.next_scene_id = 0;
     }
 
     return false;
@@ -331,4 +326,70 @@ void LevelA::render(ShaderProgram* program)
     m_game_state.weapon->render(program);
     m_game_state.player->render(program);
 
+}
+
+
+bool LevelA::win_condition()
+{
+    return !m_game_state.enemies[34].is_active();
+}
+
+
+// i know this is bad code but argh
+void LevelA::spawn_enemy(float delta_time)
+{
+    levelA_time_accumulator += delta_time;
+    if (levelA_time_accumulator >= 1.0f) 
+    {
+        for (int i = 35; i <= 70; i++)
+        {
+            if (!m_game_state.enemies[i].is_active()) 
+            {
+                GLuint necromancer_texture_id = Utility::load_texture(NECROMANCER_FILEPATH);
+                float necromancer_width = 0.8f;
+                float necromancer_height = 1.2f;
+                glm::vec3 necromancer_scale = glm::vec3(necromancer_width, necromancer_height, 1.0f);
+
+                std::vector<std::vector<int>> enemy_animation2 = {
+                    {4, 5, 6, 7},
+                    {0, 1, 2, 3},
+                    {4, 5, 6, 7},
+                    {0, 1, 2, 3}
+                };
+
+                levelA_time_accumulator = 0.0f;
+
+                m_game_state.enemies[i] = Entity(
+                    necromancer_texture_id,
+                    enemy_animation2,
+                    8,                              // frames per second
+                    4,                              // animation frame amount
+                    1,                              // current animation index
+                    4,                              // animation column amount
+                    2,                              // animation row amount
+                    necromancer_width,              // width
+                    necromancer_height,             // height
+                    3.5f,                           // speed
+                    200,                            // health
+                    5,                              // attack
+                    0,                              // angle
+                    ENEMY                           // EntityType
+                );
+
+                int offset = (i - 35);
+                float offset_y = (offset / 6) * 2.0f;
+                float offset_x = (offset % 6) * 2.0f;
+
+                m_game_state.enemies[i].activate();
+                m_game_state.enemies[i].set_position(glm::vec3(30.0f + offset_x, -30.0f - offset_y, 0.0f));
+                m_game_state.enemies[i].set_scale(necromancer_scale);
+                m_game_state.enemies[i].set_attack_cooldown(0.25f);
+                m_game_state.enemies[i].set_damage_cooldown(0.10f);
+                m_game_state.enemies[i].set_ai_type(GUARD);
+                m_game_state.enemies[i].set_ai_state(IDLE);
+
+                break;
+            }
+        }
+    }
 }

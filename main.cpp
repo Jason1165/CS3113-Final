@@ -21,6 +21,7 @@
 #include "Map.h"
 #include "Utility.h"
 
+#include "Menu.h"
 #include "LevelA.h"
 
 
@@ -64,20 +65,20 @@ enum ScreenStatus { MENU, PAUSE, REGULAR, GAMEWIN, GAMEOVER};
 
 // ----- VARIABLES ----- //
 Scene* g_current_scene;
+Menu* g_menu;
 LevelA* g_levelA;
 
-Scene* g_levels[1];
+Scene* g_levels[2];
 
 SDL_Window* g_display_window;
 AppStatus g_app_status = RUNNING;
-ScreenStatus g_screen_status = REGULAR;
+ScreenStatus g_screen_status = MENU;
 
 ShaderProgram g_shader_program;
 glm::mat4 g_view_matrix, g_projection_matrix;
 
 float g_previous_ticks = 0.0f;
 float g_accumulator = 0.0f;
-
 
 
 // ----- PROTOTYPES ----- //
@@ -130,7 +131,10 @@ void initialise()
 
     // MAPS
     g_levelA = new LevelA();
-    g_levels[0] = g_levelA;
+    g_menu = new Menu();
+
+    g_levels[0] = g_menu;
+    g_levels[1] = g_levelA;
 
     switch_to_scene(g_levels[0]);
 
@@ -160,6 +164,13 @@ void process_input()
 
         case SDL_KEYDOWN:
             switch (event.key.keysym.sym) {
+            case SDLK_RETURN:
+                if (g_screen_status == MENU)
+                {
+                    g_screen_status = REGULAR;
+                    switch_to_scene(g_levels[1]);
+                }
+                break;
             case SDLK_q:
                 // Quit the game with a keystroke
                 g_app_status = TERMINATED;
@@ -176,8 +187,13 @@ void process_input()
                     g_current_scene->get_state().weapon->set_attack_state(CIRCLING);
                 }
                 break;
-            case SDLK_1:
+            case SDLK_0:
                 switch_to_scene(g_levels[0]);
+                g_screen_status = MENU;
+                break;
+            case SDLK_1:
+                switch_to_scene(g_levels[1]);
+                g_screen_status = REGULAR;
                 break;
             default:
                 break;
@@ -284,6 +300,14 @@ int main(int argc, char* argv[])
     {
         process_input();
         update();
+        if (g_current_scene->get_state().next_scene_id >= 0)
+        {
+            int next_scene = g_current_scene->get_state().next_scene_id;
+            if (next_scene >= 0)
+            {
+                switch_to_scene(g_levels[next_scene]);
+            }
+        }
         render();
     }
 

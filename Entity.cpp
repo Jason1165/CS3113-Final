@@ -407,13 +407,15 @@ void Entity::ai_charge(Entity* player)
         }
         break;
     case ATTACK:
-        if (glm::distance(m_position, m_origin) <= 0.5f) 
+        if (glm::distance(m_position, m_origin) <= 0.1f) 
         {
             m_movement = glm::vec3(0.0f);
             m_ai_state = IDLE;
         }
         else if (glm::distance(m_position, m_origin) >= m_distance) {
             m_movement *= -1.0f;
+            if (m_movement.x < 0.0f) { face_left(); }
+            else { face_right(); }
         }
         break;
     }
