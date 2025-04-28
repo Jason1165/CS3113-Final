@@ -421,7 +421,17 @@ void Entity::ai_charge(Entity* player)
     }
 }
 
-void Entity::weapon_activate(Entity* player, float delta_time) 
+
+void Entity::weapon_activate(Entity* player, float delta_time)
+{
+    switch (m_weapon_type) {
+    case SWORD:
+        ai_sword(player, delta_time);
+        break;
+    }
+}
+
+void Entity::ai_sword(Entity* player, float delta_time) 
 {
     float angle = 30;
     // TRANSLATING WEAPON TO THE RIGHT POSITION
@@ -434,13 +444,13 @@ void Entity::weapon_activate(Entity* player, float delta_time)
     {
         this->face_right();
         position.x += offset_x;
-        if (m_attack_state == HOLDING) m_angle = -angle;
+        if (m_attack_state == HOLD) m_angle = -angle;
     }
     else 
     {
         this->face_left();
         position.x -= offset_x;
-        if (m_attack_state == HOLDING) m_angle = angle;
+        if (m_attack_state == HOLD) m_angle = angle;
     }
     position.y += offset_y;
     this->set_position(position);
@@ -454,14 +464,14 @@ void Entity::weapon_activate(Entity* player, float delta_time)
     float angle_delta = delta_time * 360.0f * m_speed;
 
     switch (m_attack_state) {
-    case HOLDING:
+    case HOLD:
         m_last_attack += delta_time;
         break;
-    case SWINGING:
-        if (m_last_attack <= m_attack_cooldown) { m_attack_state = HOLDING; m_last_attack += delta_time; }
-        else { m_last_attack = 0.0f; m_attack_state = SWING; }
+    case REG_START:
+        if (m_last_attack <= m_attack_cooldown) { m_attack_state = REG_START; m_last_attack += delta_time; }
+        else { m_last_attack = 0.0f; m_attack_state = REG_ATTACK; }
         break;
-    case SWING:
+    case REG_ATTACK:
         if (m_angle <= right_min && m_angle >= right_max) 
         {
             m_angle -= angle_delta;
@@ -472,16 +482,16 @@ void Entity::weapon_activate(Entity* player, float delta_time)
         }
         else 
         {
-            m_attack_state = HOLDING;
+            m_attack_state = HOLD;
         }
         break;
-    case CIRCLING:
-        if (m_last_attack <= m_attack_cooldown) { m_attack_state = HOLDING; m_last_attack += delta_time; }
-        else { m_last_attack = 0.0f; m_attack_state = CIRCLE; }        
+    case ULT_START:
+        if (m_last_attack <= m_attack_cooldown) { m_attack_state = HOLD; m_last_attack += delta_time; }
+        else { m_last_attack = 0.0f; m_attack_state = ULT_ATTACK; }        
         break;
-    case CIRCLE:
+    case ULT_ATTACK:
         // using m_last_attack as a temp accumulator
-        if (m_last_attack >= 3600.0f) { m_attack_state = HOLDING; m_last_attack = 0.0f; }
+        if (m_last_attack >= 3600.0f) { m_attack_state = HOLD; m_last_attack = 0.0f; }
         else { m_angle += angle_delta; m_last_attack += angle_delta; }
     default:
         break;
@@ -541,12 +551,12 @@ bool Entity::weapon_update(float delta_time, Entity* collidable_entities, int co
                 {
                     collidable_entities[i].deactivate();
                 }
-                else if (m_attack_state == SWING || m_attack_state == CIRCLE)
+                else if (m_attack_state == REG_ATTACK || m_attack_state == ULT_ATTACK)
                 {
                     if (curr_damage_time >= collidable_entities[i].get_damage_cooldown())
                     {
-                        if (m_attack_state == SWING) { collidable_entities[i].take_damage(m_attack * 3); }
-                        if (m_attack_state == CIRCLE) { collidable_entities[i].take_damage(m_attack); }
+                        if (m_attack_state == REG_ATTACK) { collidable_entities[i].take_damage(m_attack * 3); }
+                        if (m_attack_state == ULT_ATTACK) { collidable_entities[i].take_damage(m_attack); }
                         collidable_entities[i].set_last_damage(0.0f);
                     }
                 }

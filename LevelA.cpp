@@ -142,14 +142,15 @@ void LevelA::initialise()
         1.0f,                           // height
         3.0f,                           // speed
         0,                              // health
-        2500,                             // attack
+        25,                             // attack
         0,                              // angle
         WEAPON                          // Entity Type
     );
     m_game_state.weapon->set_position(glm::vec3(1.0f, -1.0f, 0.0f));
     m_game_state.weapon->set_scale(glm::vec3(0.4f, 1.0f, 1.0f));
     m_game_state.weapon->set_attack_cooldown(0.01f);
-    m_game_state.weapon->set_attack_state(HOLDING);
+    m_game_state.weapon->set_attack_state(HOLD);
+    m_game_state.weapon->set_weapon_type(SWORD);
 
 
     // ----- ENEMIES ----- //

@@ -176,15 +176,15 @@ void process_input()
                 g_app_status = TERMINATED;
                 break;
             case SDLK_r:
-                if (g_current_scene->get_state().weapon->get_attack_state() == HOLDING)
+                if (g_current_scene->get_state().weapon->get_attack_state() == HOLD)
                 {
-                    g_current_scene->get_state().weapon->set_attack_state(SWINGING);
+                    g_current_scene->get_state().weapon->set_attack_state(REG_START);
                 }
                 break;
             case SDLK_f:
-                if (g_current_scene->get_state().weapon->get_attack_state() == HOLDING)
+                if (g_current_scene->get_state().weapon->get_attack_state() == HOLD)
                 {
-                    g_current_scene->get_state().weapon->set_attack_state(CIRCLING);
+                    g_current_scene->get_state().weapon->set_attack_state(ULT_START);
                 }
                 break;
             case SDLK_0:

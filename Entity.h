@@ -7,7 +7,10 @@
 #include "SDL_mixer.h"
 
 enum EntityType { PLAYER, ENEMY, WEAPON };
-enum AttackState { HOLDING, SWINGING, SWING, CIRCLING, CIRCLE };
+enum WeaponType { SWORD };
+
+enum AttackState { HOLD, REG_START, REG_ATTACK, ULT_START, ULT_ATTACK };
+
 enum AIType {GUARD, WALKER, CHARGE};
 enum AIState {IDLE, ATTACK};
 
@@ -17,12 +20,12 @@ class Entity
 {
 
 protected:
-
 	EntityType m_entity_type;
 	AIType m_ai_type;
 	AIState m_ai_state;
 	AnimationDirection m_direction;
 	AttackState m_attack_state;
+	WeaponType m_weapon_type;
 
 	// ----- ACTIVE ----- //
 	bool m_is_active = true;
@@ -105,6 +108,7 @@ public:
 	void ai_walker(Entity* player);
 	void ai_charge(Entity* player);
 	void weapon_activate(Entity* player, float delta_time);
+	void ai_sword(Entity* player, float delta_time);
 
 	void normalise_movement() { m_movement = glm::normalize(m_movement); }
 
@@ -138,6 +142,7 @@ public:
 	EntityType	const get_entity_type()		const { return m_entity_type; }
 	AIType		const get_ai_type()			const { return m_ai_type; }
 	AIState		const get_ai_state()		const { return m_ai_state; }
+	WeaponType	const get_weapon_type()		const { return m_weapon_type; }
 	glm::vec3	const get_position()		const { return m_position; }
 	glm::vec3	const get_velocity()		const { return m_velocity; }
 	glm::vec3	const get_acceleration()	const { return m_acceleration; }
@@ -172,6 +177,7 @@ public:
 	void const set_entity_type(EntityType new_entity_type) { m_entity_type = new_entity_type; }
 	void const set_ai_type(AIType new_ai_type) { m_ai_type = new_ai_type; }
 	void const set_ai_state(AIState new_state) { m_ai_state = new_state; }
+	void const set_weapon_type(WeaponType new_weapon_type) { m_weapon_type = new_weapon_type;  }
 	void const set_position(glm::vec3 new_position) { m_position = new_position; }
 	void const set_velocity(glm::vec3 new_velocity) { m_velocity = new_velocity; }
 	void const set_acceleration(glm::vec3 new_acceleration) { m_acceleration = new_acceleration; }
