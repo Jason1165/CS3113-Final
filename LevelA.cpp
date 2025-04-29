@@ -22,6 +22,11 @@ constexpr char CHORT_FILEPATH[] = "assets/sprites/chort_anim.png"; // 16 x 23, 2
 constexpr char NECROMANCER_FILEPATH[] = "assets/sprites/necromancer_anim.png"; // 16 x 23
 constexpr char WEAPON_ANIME_SWORD[] = "assets/sprites/weapon_anime_sword.png"; // 12 x 30, 2:5, 1.0f, 2.5f
 
+constexpr char FONT_FILEPATH[] = "assets/sprites/fontsheet_white.png";
+constexpr char HP_POTION_FILEPATH[] = "assets/sprites/PotionL_Red.png";
+constexpr char SP_POTION_FILEPATH[] = "assets/sprites/PotionL_Blue.png";
+GLuint fontsheet_id;
+
 
 unsigned int LEVELA_DATA[] =
 {
@@ -83,6 +88,7 @@ LevelA::~LevelA()
 
 void LevelA::initialise()
 {
+    fontsheet_id = Utility::load_texture(FONT_FILEPATH);
     m_game_state.next_scene_id = -1;
     srand(unsigned int(std::time(nullptr)));
 
@@ -140,15 +146,15 @@ void LevelA::initialise()
         1,                              // animation row amount
         0.4f,                           // width
         1.0f,                           // height
-        3.0f,                           // speed
+        4.0f,                           // speed
         0,                              // health
-        25,                             // attack
+        50,                             // attack
         0,                              // angle
         WEAPON                          // Entity Type
     );
     m_game_state.weapon->set_position(glm::vec3(1.0f, -1.0f, 0.0f));
     m_game_state.weapon->set_scale(glm::vec3(0.4f, 1.0f, 1.0f));
-    m_game_state.weapon->set_attack_cooldown(0.01f);
+    m_game_state.weapon->set_attack_cooldown(0.2f);
     m_game_state.weapon->set_attack_state(HOLD);
     m_game_state.weapon->set_weapon_type(SWORD);
 
@@ -260,15 +266,15 @@ void LevelA::initialise()
             big_demon_width*1.2,
             big_demon_height*1.2,
             6.0f,
-            2500,
-            15,
+            2000,
+            10,
             0,
             ENEMY
         );
         m_game_state.enemies[i + 34].set_position(glm::vec3(35.0f, -35.0f, 0.0f));
         m_game_state.enemies[i + 34].set_scale(big_demon_scale*1.2f);
-        m_game_state.enemies[i + 34].set_attack_cooldown(0.2f);
-        m_game_state.enemies[i + 34].set_damage_cooldown(0.10f);
+        m_game_state.enemies[i + 34].set_attack_cooldown(0.1f);
+        m_game_state.enemies[i + 34].set_damage_cooldown(0.25f);
         m_game_state.enemies[i + 34].set_ai_type(CHARGE);
         m_game_state.enemies[i + 34].set_ai_state(IDLE);
         m_game_state.enemies[i + 34].set_origin(glm::vec3(35.0f, -35.0f, 0.0f));
@@ -281,6 +287,73 @@ void LevelA::initialise()
         m_game_state.enemies[i].deactivate();
     }
 
+
+    // POTION ENTITY
+    GLuint health_potion_id = Utility::load_texture(HP_POTION_FILEPATH);
+    GLuint sp_potion_id = Utility::load_texture(SP_POTION_FILEPATH);
+    std::vector<std::vector<int>> potion_animation =
+    {
+        {0, 1, 2, 3, 4, 5, 6},
+    };
+
+    m_game_state.enemies[71] = Entity(
+        health_potion_id,               // texture id
+        potion_animation,               // animations
+        16,                             // frames per second
+        7,                              // animation frame amount
+        0,                              // current animation index
+        7,                              // animation column amount
+        1,                              // animation row amount
+        1.0f,                           // width
+        1.0f,                           // height
+        0.0f,                           // speed
+        300,                            // health
+        0,                              // attack
+        0,                              // angle
+        POTION                          // EntityType
+    );
+    m_game_state.enemies[71].set_position(glm::vec3(37.0f, -5.0f, 0.0f));
+    m_game_state.enemies[71].set_scale(glm::vec3(1.0f, 1.0f, 1.0f));
+    m_game_state.enemies[71].deactivate();
+
+    m_game_state.enemies[72] = Entity(
+        health_potion_id,               // texture id
+        potion_animation,               // animations
+        16,                             // frames per second
+        7,                              // animation frame amount
+        0,                              // current animation index
+        7,                              // animation column amount
+        1,                              // animation row amount
+        1.0f,                           // width
+        1.0f,                           // height
+        0.0f,                           // speed
+        200,                            // health
+        0,                              // attack
+        0,                              // angle
+        POTION                          // EntityType
+    );
+    m_game_state.enemies[72].set_position(glm::vec3(6.0f, -37.0f, 0.0f));
+    m_game_state.enemies[72].set_scale(glm::vec3(1.0f, 1.0f, 1.0f));
+
+    m_game_state.enemies[73] = Entity(
+        sp_potion_id,                   // texture id
+        potion_animation,               // animations
+        16,                             // frames per second
+        7,                              // animation frame amount
+        0,                              // current animation index
+        7,                              // animation column amount
+        1,                              // animation row amount
+        1.0f,                           // width
+        1.0f,                           // height
+        2.0f,                           // speed
+        1,                              // health
+        0,                              // attack
+        0,                              // angle
+        POTION                          // EntityType
+    );
+    m_game_state.enemies[73].set_position(glm::vec3(37.0f, -20.0f, 0.0f));
+    m_game_state.enemies[73].set_scale(glm::vec3(1.0f, 1.0f, 1.0f));
+    m_game_state.enemies[73].deactivate();
 
     /**
      BGM and SFX
@@ -311,12 +384,41 @@ bool LevelA::update(float delta_time)
     {
         m_game_state.next_scene_id = 0;
     }
+    if (m_game_state.player->get_hp() <= 0)
+    {
+        m_game_state.next_scene_id = 0;
+    }
 
     return false;
 }
 
 void LevelA::render(ShaderProgram* program)
 {
+    float alpha_calc = 0.5;
+    if (m_game_state.player->get_hp() >= 1150) 
+    {
+        alpha_calc = 0.25f;
+    }
+    else if (m_game_state.player->get_hp() >= 900)
+    {
+        alpha_calc = 0.5f;
+    }
+    else if (m_game_state.player->get_hp() >= 650)
+    {
+        alpha_calc = 1.0f;
+    }
+    else if (m_game_state.player->get_hp() >= 400) {
+        alpha_calc = 1.5f;
+    }
+    else if (m_game_state.player->get_hp() >= 150) {
+        alpha_calc = 2.0f;
+    }
+    else 
+    {
+        alpha_calc = 3.0f;
+    }
+    program->set_alpha(alpha_calc);
+
     m_game_state.map->render(program);
 
     for (int i = 0; i < LEVELA_ENEMY_COUNT; i++)
@@ -327,6 +429,11 @@ void LevelA::render(ShaderProgram* program)
     m_game_state.weapon->render(program);
     m_game_state.player->render(program);
 
+    std::string phrase = "HP: " + std::to_string(m_game_state.player->get_hp());
+    glm::vec3 phrase_pos = m_game_state.player->get_position();
+    phrase_pos.x -= 0.6;
+    phrase_pos.y += 0.8f;
+    Utility::draw_text(program, fontsheet_id, phrase, 0.2f, 0.01f, phrase_pos);
 }
 
 
@@ -339,6 +446,42 @@ bool LevelA::win_condition()
 // i know this is bad code but argh
 void LevelA::spawn_enemy(float delta_time)
 {
+    // potion spawner, and once again ik this is bad code
+    if (m_game_state.enemies[71].get_hp() > 0)
+    {
+        bool activate = true;
+        for (int i = 0; i < 25; i++)
+        {
+            if (m_game_state.enemies[i].is_active()) {
+                activate = false;
+                break;
+            }
+        }
+        if (activate) { m_game_state.enemies[71].activate(); }
+    }
+    else
+    {
+        m_game_state.enemies[71].deactivate();
+    }
+
+    if (m_game_state.enemies[73].get_hp() > 0)
+    {
+        bool activate = true;
+        for (int i = 25; i < 34; i++)
+        {
+            if (m_game_state.enemies[i].is_active()) {
+                activate = false;
+                break;
+            }
+        }
+        if (activate) { m_game_state.enemies[73].activate(); }
+    }
+    else
+    {
+        m_game_state.enemies[73].deactivate();
+    }
+
+    // enemy spawner
     levelA_time_accumulator += delta_time;
     if (levelA_time_accumulator >= 1.0f) 
     {
@@ -360,6 +503,7 @@ void LevelA::spawn_enemy(float delta_time)
 
                 levelA_time_accumulator = 0.0f;
 
+                // speedy rascals
                 m_game_state.enemies[i] = Entity(
                     necromancer_texture_id,
                     enemy_animation2,
@@ -370,9 +514,9 @@ void LevelA::spawn_enemy(float delta_time)
                     2,                              // animation row amount
                     necromancer_width,              // width
                     necromancer_height,             // height
-                    3.5f,                           // speed
-                    200,                            // health
-                    5,                              // attack
+                    4.0f,                           // speed
+                    1,                              // health
+                    1,                              // attack
                     0,                              // angle
                     ENEMY                           // EntityType
                 );
@@ -385,7 +529,7 @@ void LevelA::spawn_enemy(float delta_time)
                 m_game_state.enemies[i].set_position(glm::vec3(30.0f + offset_x, -30.0f - offset_y, 0.0f));
                 m_game_state.enemies[i].set_scale(necromancer_scale);
                 m_game_state.enemies[i].set_attack_cooldown(0.25f);
-                m_game_state.enemies[i].set_damage_cooldown(0.10f);
+                m_game_state.enemies[i].set_damage_cooldown(0.00f);
                 m_game_state.enemies[i].set_ai_type(GUARD);
                 m_game_state.enemies[i].set_ai_state(IDLE);
 

@@ -6,6 +6,9 @@ varying vec2 texCoordVar;
 uniform vec2 lightPosition;
 varying vec2 varPosition;
 
+uniform float alpha;
+
+
 // modify a for how far to brightness
 float attenuate(float dist, float a, float b)
 {
@@ -13,7 +16,7 @@ float attenuate(float dist, float a, float b)
 }
 
 void main() {
-    float brightness = attenuate(distance(lightPosition, varPosition), 0.5, 0.0);
+    float brightness = attenuate(distance(lightPosition, varPosition), alpha, 0.0);
     vec4 color = texture2D(diffuse, texCoordVar);
     gl_FragColor = vec4(color.rgb * brightness, color.a);
 }

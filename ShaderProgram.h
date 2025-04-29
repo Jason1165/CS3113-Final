@@ -34,6 +34,7 @@ private:
 
     // new stuff
     GLuint m_light_position_uniform;
+    GLuint m_alpha;
     
 public:
 
@@ -52,4 +53,5 @@ public:
     
     // new stuff
     void set_light_position_matrix(glm::vec3 position);
+    void set_alpha(float new_alpha);
 };

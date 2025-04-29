@@ -486,12 +486,12 @@ void Entity::ai_sword(Entity* player, float delta_time)
         }
         break;
     case ULT_START:
-        if (m_last_attack <= m_attack_cooldown) { m_attack_state = HOLD; m_last_attack += delta_time; }
+        if (m_last_attack <= m_attack_cooldown*10) { m_attack_state = HOLD; m_last_attack += delta_time; }
         else { m_last_attack = 0.0f; m_attack_state = ULT_ATTACK; }        
         break;
     case ULT_ATTACK:
         // using m_last_attack as a temp accumulator
-        if (m_last_attack >= 3600.0f) { m_attack_state = HOLD; m_last_attack = 0.0f; }
+        if (m_last_attack >= 1800.0f) { m_attack_state = HOLD; m_last_attack = 0.0f; }
         else { m_angle += angle_delta; m_last_attack += angle_delta; }
     default:
         break;
@@ -513,13 +513,25 @@ bool Entity::player_update(float delta_time, Entity* collidable_entities, int co
         {
             if (check_collision_SAT(&collidable_entities[i]))
             {
-                collidable_entities[i].set_last_attack(collidable_entities[i].get_last_attack() + delta_time);
-                // if enemy can atatck and player can take damage
-                if (collidable_entities[i].get_last_attack() >= collidable_entities[i].get_attack_cooldown() && curr_damage_time >= m_damage_cooldown)
+                if (collidable_entities[i].get_entity_type() == ENEMY)
                 {
-                    this->take_damage(collidable_entities[i].get_attack());
-                    collidable_entities[i].set_last_attack(0.0f);
-                    collided = true;
+                    collidable_entities[i].set_last_attack(collidable_entities[i].get_last_attack() + delta_time);
+                    // if enemy can attack and player can take damage
+                    if (collidable_entities[i].get_last_attack() >= collidable_entities[i].get_attack_cooldown() && curr_damage_time >= m_damage_cooldown)
+                    {
+                        this->take_damage(collidable_entities[i].get_attack());
+                        collidable_entities[i].set_last_attack(0.0f);
+                        collided = true;
+                    }
+                }
+                else if (collidable_entities[i].get_entity_type() == POTION)
+                {
+                    if (collidable_entities[i].get_hp() > 0)
+                    {
+                        this->m_speed += collidable_entities[i].get_speed();
+                        this->m_health += collidable_entities[i].get_hp();
+                        collidable_entities[i].take_damage(collidable_entities[i].get_hp());
+                    }
                 }
             }
         }
@@ -555,8 +567,8 @@ bool Entity::weapon_update(float delta_time, Entity* collidable_entities, int co
                 {
                     if (curr_damage_time >= collidable_entities[i].get_damage_cooldown())
                     {
-                        if (m_attack_state == REG_ATTACK) { collidable_entities[i].take_damage(m_attack * 3); }
-                        if (m_attack_state == ULT_ATTACK) { collidable_entities[i].take_damage(m_attack); }
+                        if (m_attack_state == REG_ATTACK) { collidable_entities[i].take_damage(m_attack); }
+                        if (m_attack_state == ULT_ATTACK) { collidable_entities[i].take_damage(m_attack * 2); }
                         collidable_entities[i].set_last_damage(0.0f);
                     }
                 }

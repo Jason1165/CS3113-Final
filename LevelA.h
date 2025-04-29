@@ -4,7 +4,7 @@
 class LevelA : public Scene
 {
 public:
-    int LEVELA_ENEMY_COUNT = 71;
+    int LEVELA_ENEMY_COUNT = 74;
     float levelA_time_accumulator = 0.0f;
 
     ~LevelA();

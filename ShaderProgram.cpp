@@ -30,11 +30,13 @@ void ShaderProgram::load(const char *vertex_shader_file, const char *fragment_sh
     
     m_position_attribute  = glGetAttribLocation(m_program_id, "position");
     m_tex_coord_attribute = glGetAttribLocation(m_program_id, "texCoord");
+
     
     set_colour(1.0f, 1.0f, 1.0f, 1.0f);
     
     // new stuff
     m_light_position_uniform = glGetUniformLocation(m_program_id, "lightPosition");
+    m_alpha = glGetUniformLocation(m_program_id, "alpha");
 }
 
 void ShaderProgram::cleanup()
@@ -119,4 +121,11 @@ void ShaderProgram::set_light_position_matrix(glm::vec3 position)
 {
     glUseProgram(m_program_id);
     glUniform2f(m_light_position_uniform, position.x, position.y);
+}
+
+void ShaderProgram::set_alpha(float new_alpha)
+{
+    glUseProgram(m_program_id);
+    glUniform1f(m_alpha, new_alpha);
+    m_alpha = glGetUniformLocation(m_program_id, "alpha");
 }

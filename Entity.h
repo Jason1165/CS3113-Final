@@ -6,7 +6,7 @@
 #include "ShaderProgram.h"
 #include "SDL_mixer.h"
 
-enum EntityType { PLAYER, ENEMY, WEAPON };
+enum EntityType { PLAYER, ENEMY, WEAPON, POTION };
 enum WeaponType { SWORD };
 
 enum AttackState { HOLD, REG_START, REG_ATTACK, ULT_START, ULT_ATTACK };
