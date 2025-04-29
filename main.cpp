@@ -23,6 +23,7 @@
 
 #include "Menu.h"
 #include "LevelA.h"
+#include "LevelB.h"
 
 
 
@@ -67,8 +68,9 @@ enum ScreenStatus { MENU, PAUSE, REGULAR, GAMEWIN, GAMEOVER};
 Scene* g_current_scene;
 Menu* g_menu;
 LevelA* g_levelA;
+LevelB* g_levelB;
 
-Scene* g_levels[2];
+Scene* g_levels[3];
 
 SDL_Window* g_display_window;
 AppStatus g_app_status = RUNNING;
@@ -132,10 +134,12 @@ void initialise()
 
     // MAPS
     g_levelA = new LevelA();
+    g_levelB = new LevelB();
     g_menu = new Menu();
 
     g_levels[0] = g_menu;
     g_levels[1] = g_levelA;
+    g_levels[2] = g_levelB;
 
     switch_to_scene(g_levels[0]);
 
@@ -196,6 +200,10 @@ void process_input()
                 switch_to_scene(g_levels[1]);
                 g_screen_status = REGULAR;
                 break;
+            case SDLK_2:
+                switch_to_scene(g_levels[2]);
+                break;
+                g_screen_status = REGULAR;
             default:
                 break;
             }
