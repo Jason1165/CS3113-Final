@@ -43,10 +43,11 @@ Entity::Entity(GLuint texture_id, std::vector<std::vector<int>> animations, int 
     m_direction = AnimationDirection(animation_index);
 }
 
-Entity::Entity(GLuint texture_id, float height, float width, float speed, float angle, int attack, glm::vec3 scale, glm::vec3 movement, glm::vec3 position, EntityType entity_type)
-    : m_texture_id(texture_id), m_height(height), m_width(width), m_speed(speed), m_angle(angle), m_attack(attack), m_scale(scale), m_movement(movement),
-    m_position(position), m_entity_type(entity_type)
+void Entity::init_projectile(GLuint texture_id, float height, float width, float speed, float angle, int attack, glm::vec3 scale, glm::vec3 movement, glm::vec3 position, EntityType entity_type)
 {
+    m_texture_id = texture_id;
+    m_height = height; m_width = width; m_speed = speed; m_angle = angle; m_attack = attack;
+    m_scale = scale; m_movement = movement; m_position = position; m_entity_type = entity_type;
 }
 
 
@@ -358,26 +359,25 @@ void Entity::shooter_update(float delta_time, Entity* player, Entity* projectile
     // only entities of the shooter type will call this function
     glm::vec3 direction = player->get_position() - m_position;
     direction = glm::normalize(direction);
-    if (projectiles[ind].is_active()) { return;  }
-    if (!this->is_active()) { return;  }
-    if (m_ai_type == SHOOTER) {
+    if (!is_active()) { return; }
+    if (!projectiles[ind].is_active() && this->m_ai_type == SHOOTER) {
         if (glm::distance(player->get_position(), m_position) <= m_distance) {
-            projectiles[ind] = Entity(m_projectile_id, 0.25f, 0.5f, 4.0f, 0.0f, 5, glm::vec3(0.25f, 0.5f, 0.0f), direction, m_position, PROJECTILE);
+            projectiles[ind].init_projectile(m_projectile_id, 0.25f, 0.5f, 4.0f, 0.0f, 5, glm::vec3(0.25f, 0.5f, 0.0f), direction, m_position, PROJECTILE);
             projectiles[ind].set_projectile_type(BONE);
             projectiles[ind].set_attack_cooldown(5.0f);
             projectiles[ind].activate();
         }
+        return;
     }
-    //if (m_ai_type == THROWER) 
-    //{
-    //    if (glm::distance(player->get_position(), m_position) <= m_distance) {
-    //        projectiles[ind] = Entity(m_projectile_id, 0.25f, 0.25f, 6.0f, 0.0f, 5, glm::vec3(0.25f, 0.25f, 0.0f), direction, m_position, PROJECTILE);
-    //        projectiles[ind].set_projectile_type(BALL);
-    //        projectiles[ind].set_attack_cooldown(25.0f);
-    //        projectiles[ind].activate();
-    //    }
-    //}
-
+    else if (!projectiles[ind].is_active() && this->m_ai_type == THROWER) 
+    {
+        if (glm::distance(player->get_position(), m_position) <= m_distance) {
+            projectiles[ind].init_projectile(m_projectile_id, 0.25f, 0.25f, 6.0f, 0.0f, 5, glm::vec3(0.25f, 0.25f, 0.0f), direction, m_position, PROJECTILE);
+            projectiles[ind].set_projectile_type(BALL);
+            projectiles[ind].set_attack_cooldown(25.0f);
+            projectiles[ind].activate();
+        }
+    }
 }
 
 void Entity::ai_activate(Entity* player, float delta_time)

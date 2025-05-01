@@ -91,10 +91,11 @@ protected:
 public:
 	Entity();
 	Entity(GLuint texture_id, std::vector<std::vector<int>> animations, int fps, int animation_frames, int animation_index, int animation_cols, int animation_rows, float width, float height, float speed, int health, int attack, float angle, EntityType entity_type);
-	Entity(GLuint texture_id, float height, float width, float speed, float angle, int attack, glm::vec3 scale, glm::vec3 movement, glm::vec3 position, EntityType entity_type);
 	~Entity();
 
 	// ----- METHODS ----- //
+	void init_projectile(GLuint texture_id, float height, float width, float speed, float angle, int attack, glm::vec3 scale, glm::vec3 movement, glm::vec3 position, EntityType entity_type);
+
 	void draw_sprite_from_texture_atlas(ShaderProgram* program, GLuint texture_id, int index);
 	bool const check_collision(Entity* other) const;
 
