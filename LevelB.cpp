@@ -152,7 +152,7 @@ void LevelB::initialise()
     );
     m_game_state.weapon->set_position(glm::vec3(1.0f, -1.0f, 0.0f));
     m_game_state.weapon->set_scale(glm::vec3(0.4f, 1.0f, 1.0f));
-    m_game_state.weapon->set_attack_cooldown(0.2f);
+    m_game_state.weapon->set_attack_cooldown(0.1f);
     m_game_state.weapon->set_attack_state(HOLD);
     m_game_state.weapon->set_weapon_type(SWORD);
 
@@ -188,7 +188,7 @@ void LevelB::initialise()
             enemy_animation,                // animations
             16,                             // frames per second
             4,                              // animation frame amount
-            0,                              // current animation index
+            2,                              // current animation index
             4,                              // animation column amount
             4,                              // animation row amount
             1.0f,                           // width
@@ -221,7 +221,7 @@ void LevelB::initialise()
             4,                              // animation row amount
             0.6f,                           // width
             0.9f,                           // height
-            4.0f,                           // speed
+            6.0f,                           // speed
             400,                            // health
             1,                              // attack
             0,                              // angle
@@ -249,7 +249,7 @@ void LevelB::initialise()
             4,                              // animation row amount
             0.6f,                           // width
             0.9f,                           // height
-            4.0f,                           // speed
+            6.0f,                           // speed
             400,                            // health
             1,                              // attack
             0,                              // angle
@@ -277,7 +277,7 @@ void LevelB::initialise()
             4,                              // animation row amount
             0.6f,                           // width
             0.9f,                           // height
-            4.0f,                           // speed
+            6.0f,                           // speed
             400,                            // health
             1,                              // attack
             0,                              // angle
@@ -305,7 +305,7 @@ void LevelB::initialise()
             4,                              // animation row amount
             0.6f,                           // width
             0.9f,                           // height
-            4.0f,                           // speed
+            6.0f,                           // speed
             800,                            // health
             1,                              // attack
             0,                              // angle
@@ -334,9 +334,9 @@ void LevelB::initialise()
             4,
             1.6f * 1.2f,
             1.8f * 1.2f,
-            4.0f,
-            2000,
-            6,
+            4.5f,
+            3000,
+            10,
             0,
             ENEMY
         );
@@ -359,6 +359,65 @@ void LevelB::initialise()
     {
         {0, 1, 2, 3, 4, 5, 6},
     };
+
+    m_game_state.enemies[65] = Entity(
+        sp_potion_id,                   // texture id
+        potion_animation,               // animations
+        16,                             // frames per second
+        7,                              // animation frame amount
+        0,                              // current animation index
+        7,                              // animation column amount
+        1,                              // animation row amount
+        1.0f,                           // width
+        1.0f,                           // height
+        2.5f,                           // speed
+        50,                             // health
+        0,                              // attack
+        0,                              // angle
+        POTION                          // EntityType
+    );
+    m_game_state.enemies[65].set_position(glm::vec3(17.0f, -25.0f, 0.0f));
+    m_game_state.enemies[65].set_scale(glm::vec3(1.0f, 1.0f, 1.0f));
+
+    m_game_state.enemies[66] = Entity(
+        health_potion_id,                   // texture id
+        potion_animation,               // animations
+        16,                             // frames per second
+        7,                              // animation frame amount
+        0,                              // current animation index
+        7,                              // animation column amount
+        1,                              // animation row amount
+        1.0f,                           // width
+        1.0f,                           // height
+        0.0f,                           // speed
+        250,                             // health
+        0,                              // attack
+        0,                              // angle
+        POTION                          // EntityType
+    );
+    m_game_state.enemies[66].set_position(glm::vec3(5.0f, -17.0f, 0.0f));
+    m_game_state.enemies[66].set_scale(glm::vec3(1.0f, 1.0f, 1.0f));
+
+    m_game_state.enemies[67] = Entity(
+        health_potion_id,                   // texture id
+        potion_animation,               // animations
+        16,                             // frames per second
+        7,                              // animation frame amount
+        0,                              // current animation index
+        7,                              // animation column amount
+        1,                              // animation row amount
+        1.0f,                           // width
+        1.0f,                           // height
+        0.0f,                           // speed
+        250,                            // health
+        5,                              // attack
+        0,                              // angle
+        POTION                          // EntityType
+    );
+    m_game_state.enemies[67].set_position(glm::vec3(52.0f, -36.0f, 0.0f));
+    m_game_state.enemies[67].set_scale(glm::vec3(1.0f, 1.0f, 1.0f));
+
+
 
     /**
      BGM and SFX
@@ -391,12 +450,12 @@ bool LevelB::update(float delta_time)
 
     if (win_condition())
     {
-        m_game_state.next_scene_id = 0;
+        m_game_state.next_scene_id = 3;
     }
 
     if (m_game_state.player->get_hp() <= 0)
     {
-        m_game_state.next_scene_id = 0;
+        m_game_state.next_scene_id = 5;
     }
 
     return false;

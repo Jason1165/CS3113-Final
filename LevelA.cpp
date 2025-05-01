@@ -153,7 +153,7 @@ void LevelA::initialise()
     );
     m_game_state.weapon->set_position(glm::vec3(1.0f, -1.0f, 0.0f));
     m_game_state.weapon->set_scale(glm::vec3(0.4f, 1.0f, 1.0f));
-    m_game_state.weapon->set_attack_cooldown(0.2f);
+    m_game_state.weapon->set_attack_cooldown(0.1f);
     m_game_state.weapon->set_attack_state(HOLD);
     m_game_state.weapon->set_weapon_type(SWORD);
 
@@ -250,6 +250,8 @@ void LevelA::initialise()
         m_game_state.enemies[i + 25].set_damage_cooldown(0.10f);
         m_game_state.enemies[i + 25].set_ai_type(GUARD);
         m_game_state.enemies[i + 25].set_ai_state(IDLE);
+        m_game_state.enemies[i + 25].set_max_distance(8.0f);
+
     }
 
     for (int i = 0; i < 1; i++) 
@@ -387,7 +389,7 @@ bool LevelA::update(float delta_time)
     }
     if (m_game_state.player->get_hp() <= 0)
     {
-        m_game_state.next_scene_id = 0;
+        m_game_state.next_scene_id = 5;
     }
 
     return false;
@@ -517,6 +519,7 @@ void LevelA::spawn_enemy(float delta_time)
                 m_game_state.enemies[i].set_damage_cooldown(0.00f);
                 m_game_state.enemies[i].set_ai_type(GUARD);
                 m_game_state.enemies[i].set_ai_state(IDLE);
+                m_game_state.enemies[i].set_max_distance(8.0f);
 
                 break;
             }

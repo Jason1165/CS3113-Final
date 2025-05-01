@@ -24,6 +24,9 @@
 #include "Menu.h"
 #include "LevelA.h"
 #include "LevelB.h"
+#include "LevelC.h"
+#include "Win.h"
+#include "Lose.h"
 
 
 
@@ -69,8 +72,11 @@ Scene* g_current_scene;
 Menu* g_menu;
 LevelA* g_levelA;
 LevelB* g_levelB;
+LevelC* g_levelC;
+Win* g_win;
+Lose* g_lose;
 
-Scene* g_levels[3];
+Scene* g_levels[6];
 
 SDL_Window* g_display_window;
 AppStatus g_app_status = RUNNING;
@@ -135,11 +141,17 @@ void initialise()
     // MAPS
     g_levelA = new LevelA();
     g_levelB = new LevelB();
+    g_levelC = new LevelC();
+    g_win = new Win();
+    g_lose = new Lose();
     g_menu = new Menu();
 
     g_levels[0] = g_menu;
     g_levels[1] = g_levelA;
     g_levels[2] = g_levelB;
+    g_levels[3] = g_levelC;
+    g_levels[4] = g_win;
+    g_levels[5] = g_lose;
 
     switch_to_scene(g_levels[0]);
 
@@ -202,8 +214,23 @@ void process_input()
                 break;
             case SDLK_2:
                 switch_to_scene(g_levels[2]);
-                break;
                 g_screen_status = REGULAR;
+                break;
+            case SDLK_3:
+                switch_to_scene(g_levels[3]);
+                g_screen_status = REGULAR;
+                break;
+            case SDLK_4:
+                switch_to_scene(g_levels[4]);
+                g_screen_status = MENU;
+                break;
+            case SDLK_5:
+                switch_to_scene(g_levels[5]);
+                g_screen_status = MENU;
+                break;
+            case SDLK_h:
+                g_current_scene->get_state().player->set_hp(g_current_scene->get_state().player->get_hp() + 100);
+                break;
             default:
                 break;
             }

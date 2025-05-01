@@ -363,7 +363,7 @@ void Entity::shooter_update(float delta_time, Entity* player, Entity* projectile
     if (!is_active()) { return; }
     if (!projectiles[ind].is_active() && this->m_ai_type == SHOOTER) {
         if (glm::distance(player->get_position(), m_position) <= m_distance) {
-            projectiles[ind].init_projectile(m_projectile_id, 0.5f, 0.25f, 4.0f, 0.0f, 5, glm::vec3(0.25f, 0.5f, 0.0f), direction, m_position, PROJECTILE);
+            projectiles[ind].init_projectile(m_projectile_id, 0.5f, 0.25f, m_speed, 0.0f, 5, glm::vec3(0.25f, 0.5f, 0.0f), direction, m_position, PROJECTILE);
             projectiles[ind].set_projectile_type(BONE);
             projectiles[ind].set_attack_cooldown(5.0f);
             projectiles[ind].activate();
@@ -371,7 +371,7 @@ void Entity::shooter_update(float delta_time, Entity* player, Entity* projectile
     }
     else if (!projectiles[ind].is_active() && this->m_ai_type == THROWER) {
         if (glm::distance(player->get_position(), m_position) <= m_distance) {
-            projectiles[ind].init_projectile(m_projectile_id, 0.5f, 0.5f, 6.0f, 0.0f, 1, glm::vec3(0.5f, 0.5f, 0.0f), direction, m_position, PROJECTILE);
+            projectiles[ind].init_projectile(m_projectile_id, 0.5f, 0.5f, m_speed, 0.0f, 1, glm::vec3(0.5f, 0.5f, 0.0f), direction, m_position, PROJECTILE);
             projectiles[ind].set_projectile_type(BALL);
             projectiles[ind].set_attack_cooldown(25.0f);
             projectiles[ind].activate();
@@ -402,7 +402,7 @@ void Entity::ai_guard(Entity* player)
     switch (m_ai_state)
     {
     case IDLE:
-        if (glm::distance(player->get_position(), m_position) <= 8.0f)
+        if (glm::distance(player->get_position(), m_position) <= m_distance)
         {
             m_ai_state = ATTACK;
         }
@@ -484,6 +484,7 @@ void Entity::projectile_update(Entity* player, float delta_time)
             m_last_attack = 0.0f;
         }
         m_angle += delta_time * 360.0f * m_speed / 16.0f;
+        m_speed += 0.002f;
         if (m_angle >= 360.0f) { m_angle -= 360.0f; m_attack += 1; }
     default:
         break;
@@ -598,6 +599,7 @@ bool Entity::player_update(float delta_time, Entity* collidable_entities, int co
                     {
                         this->m_speed += collidable_entities[i].get_speed();
                         this->m_health += collidable_entities[i].get_hp();
+                        this->m_attack += collidable_entities[i].get_attack();
                         collidable_entities[i].take_damage(collidable_entities[i].get_hp());
                         collidable_entities[i].deactivate();
                     }
