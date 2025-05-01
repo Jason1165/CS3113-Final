@@ -17,7 +17,8 @@ Entity::Entity()
     : m_position(0.0f), m_movement(0.0f), m_scale(1.0f, 1.0f, 0.0f), m_model_matrix(1.0f),
     m_speed(0.0f), m_animation_cols(0), m_animation_frames(0), m_animation_index(0),
     m_animation_rows(0), m_animation_indices({}), m_animation_time(0.0f),
-    m_texture_id(0), m_velocity(0.0f), m_acceleration(0.0f), m_width(0.0f), m_height(0.0f), m_origin(0.0f), m_distance(0)
+    m_texture_id(0), m_velocity(0.0f), m_acceleration(0.0f), m_width(0.0f), m_height(0.0f), m_origin(0.0f), m_distance(0), m_offset(0.0f), m_angle(0.0f),
+    m_frames_per_second(0), m_health(0), m_attack(0), m_last_attack(0.0f), m_last_damage(0.0f)
 {
 }
 
@@ -362,17 +363,15 @@ void Entity::shooter_update(float delta_time, Entity* player, Entity* projectile
     if (!is_active()) { return; }
     if (!projectiles[ind].is_active() && this->m_ai_type == SHOOTER) {
         if (glm::distance(player->get_position(), m_position) <= m_distance) {
-            projectiles[ind].init_projectile(m_projectile_id, 0.25f, 0.5f, 4.0f, 0.0f, 5, glm::vec3(0.25f, 0.5f, 0.0f), direction, m_position, PROJECTILE);
+            projectiles[ind].init_projectile(m_projectile_id, 0.5f, 0.25f, 4.0f, 0.0f, 5, glm::vec3(0.25f, 0.5f, 0.0f), direction, m_position, PROJECTILE);
             projectiles[ind].set_projectile_type(BONE);
             projectiles[ind].set_attack_cooldown(5.0f);
             projectiles[ind].activate();
         }
-        return;
     }
-    else if (!projectiles[ind].is_active() && this->m_ai_type == THROWER) 
-    {
+    else if (!projectiles[ind].is_active() && this->m_ai_type == THROWER) {
         if (glm::distance(player->get_position(), m_position) <= m_distance) {
-            projectiles[ind].init_projectile(m_projectile_id, 0.25f, 0.25f, 6.0f, 0.0f, 5, glm::vec3(0.25f, 0.25f, 0.0f), direction, m_position, PROJECTILE);
+            projectiles[ind].init_projectile(m_projectile_id, 0.5f, 0.5f, 6.0f, 0.0f, 1, glm::vec3(0.5f, 0.5f, 0.0f), direction, m_position, PROJECTILE);
             projectiles[ind].set_projectile_type(BALL);
             projectiles[ind].set_attack_cooldown(25.0f);
             projectiles[ind].activate();
@@ -469,7 +468,7 @@ void Entity::projectile_update(Entity* player, float delta_time)
     {
     case BONE:
         m_last_attack += delta_time;
-        if (m_last_attack >= m_attack_cooldown) 
+        if (m_last_attack >= m_attack_cooldown)
         {
             this->deactivate();
             m_last_attack = 0.0f;
@@ -477,6 +476,15 @@ void Entity::projectile_update(Entity* player, float delta_time)
         m_angle += delta_time * 360.0f * m_speed / 2.0f;
         if (m_angle >= 360.0f) { m_angle -= 360.0f; }
         break;
+    case BALL:
+        m_last_attack += delta_time;
+        if (m_last_attack >= m_attack_cooldown)
+        {
+            this->deactivate();
+            m_last_attack = 0.0f;
+        }
+        m_angle += delta_time * 360.0f * m_speed / 16.0f;
+        if (m_angle >= 360.0f) { m_angle -= 360.0f; m_attack += 1; }
     default:
         break;
     }

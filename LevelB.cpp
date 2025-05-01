@@ -22,6 +22,8 @@ constexpr char SKELETON_FILEPATH[] = "assets/sprites/skelet_anim.png"; // 16 x 1
 constexpr char BONE_FILEPATH[] = "assets/sprites/bone.png"; // 12 x 24
 constexpr char PUMPKIN_DUDE_FILEPATH[] = "assets/sprites/pumpkin_dude_anim.png"; // 16 x 23
 constexpr char PUMPKIN_HEAD_FILEPATH[] = "assets/sprites/pumpkin_head.png"; // 16 x 16
+constexpr char BIG_DEMON_FILEPATH[] = "assets/sprites/big_demon_anim.png"; // 32 x 26, 8:9, 1.0f, 1.125f
+
 
 constexpr char FONT_FILEPATH[] = "assets/sprites/fontsheet_white.png";
 constexpr char HP_POTION_FILEPATH[] = "assets/sprites/PotionL_Red.png";
@@ -162,6 +164,7 @@ void LevelB::initialise()
     GLuint bone_texture_id = Utility::load_texture(BONE_FILEPATH);
     GLuint pumpkin_dude_texture_id = Utility::load_texture(PUMPKIN_DUDE_FILEPATH);
     GLuint pumpkin_texture_id = Utility::load_texture(PUMPKIN_HEAD_FILEPATH);
+    GLuint big_demon_texture_id = Utility::load_texture(BIG_DEMON_FILEPATH);
     
 
     std::vector<std::vector<int>> enemy_animation = {
@@ -206,35 +209,146 @@ void LevelB::initialise()
         m_game_state.enemies[i + 1].deactivate();
     }
 
-    //for (int i = 10; i < 31; i += 3)
-    //{
-    //    m_game_state.enemies[i] = Entity(
-    //        pumpkin_dude_texture_id,        // texture id
-    //        enemy_animation,                // animations
-    //        16,                             // frames per second
-    //        4,                              // animation frame amount
-    //        0,                              // current animation index
-    //        4,                              // animation column amount
-    //        4,                              // animation row amount
-    //        0.6f,                           // width
-    //        0.9f,                           // height
-    //        4.0f,                           // speed
-    //        400,                            // health
-    //        1,                              // attack
-    //        0,                              // angle
-    //        ENEMY                           // Entity Type
-    //    );
+    for (int i = 10; i < 24; i += 2)
+    {
+        m_game_state.enemies[i] = Entity(
+            pumpkin_dude_texture_id,        // texture id
+            enemy_animation,                // animations
+            16,                             // frames per second
+            4,                              // animation frame amount
+            0,                              // current animation index
+            4,                              // animation column amount
+            4,                              // animation row amount
+            0.6f,                           // width
+            0.9f,                           // height
+            4.0f,                           // speed
+            400,                            // health
+            1,                              // attack
+            0,                              // angle
+            ENEMY                           // Entity Type
+        );
 
-    //    m_game_state.enemies[i].set_position(glm::vec3(24.0f + (i-10 / 3) * 1.0f, -26.0f, 0.0f));
-    //    m_game_state.enemies[i].set_scale(glm::vec3(0.6f, 0.9f, 1.0f));
-    //    m_game_state.enemies[i].set_ai_type(THROWER);
-    //    m_game_state.enemies[i].set_projectile(pumpkin_texture_id);
-    //    m_game_state.enemies[i].set_max_distance(5.0f);
-    //    m_game_state.enemies[i + 1] = Entity();
-    //    m_game_state.enemies[i + 1].deactivate();
-    //    m_game_state.enemies[i + 2] = Entity();
-    //    m_game_state.enemies[i + 2].deactivate();
-    //}
+        m_game_state.enemies[i].set_position(glm::vec3(24.0f + ((i-10) / 2) * 1.0f, -26.0f, 0.0f));
+        m_game_state.enemies[i].set_scale(glm::vec3(0.6f, 0.9f, 1.0f));
+        m_game_state.enemies[i].set_ai_type(THROWER);
+        m_game_state.enemies[i].set_projectile(pumpkin_texture_id);
+        m_game_state.enemies[i].set_max_distance(5.0f);
+        m_game_state.enemies[i + 1] = Entity();
+        m_game_state.enemies[i + 1].deactivate();
+    }
+
+    for (int i = 24; i < 34; i += 2)
+    {
+        m_game_state.enemies[i] = Entity(
+            pumpkin_dude_texture_id,        // texture id
+            enemy_animation,                // animations
+            16,                             // frames per second
+            4,                              // animation frame amount
+            0,                              // current animation index
+            4,                              // animation column amount
+            4,                              // animation row amount
+            0.6f,                           // width
+            0.9f,                           // height
+            4.0f,                           // speed
+            400,                            // health
+            1,                              // attack
+            0,                              // angle
+            ENEMY                           // Entity Type
+        );
+
+        m_game_state.enemies[i].set_position(glm::vec3(5.0f + ((i - 24) / 2) * 8.0f, -36.0f, 0.0f));
+        m_game_state.enemies[i].set_scale(glm::vec3(0.6f, 0.9f, 1.0f));
+        m_game_state.enemies[i].set_ai_type(THROWER);
+        m_game_state.enemies[i].set_projectile(pumpkin_texture_id);
+        m_game_state.enemies[i].set_max_distance(5.0f);
+        m_game_state.enemies[i + 1] = Entity();
+        m_game_state.enemies[i + 1].deactivate();
+    }
+
+    for (int i = 34; i < 38; i += 2)
+    {
+        m_game_state.enemies[i] = Entity(
+            pumpkin_dude_texture_id,        // texture id
+            enemy_animation,                // animations
+            16,                             // frames per second
+            4,                              // animation frame amount
+            0,                              // current animation index
+            4,                              // animation column amount
+            4,                              // animation row amount
+            0.6f,                           // width
+            0.9f,                           // height
+            4.0f,                           // speed
+            400,                            // health
+            1,                              // attack
+            0,                              // angle
+            ENEMY                           // Entity Type
+        );
+
+        m_game_state.enemies[i].set_position(glm::vec3(3.0f + ((i - 34) / 2) * 4.0f, -18.0f, 0.0f));
+        m_game_state.enemies[i].set_scale(glm::vec3(0.6f, 0.9f, 1.0f));
+        m_game_state.enemies[i].set_ai_type(THROWER);
+        m_game_state.enemies[i].set_projectile(pumpkin_texture_id);
+        m_game_state.enemies[i].set_max_distance(5.0f);
+        m_game_state.enemies[i + 1] = Entity();
+        m_game_state.enemies[i + 1].deactivate();
+    }
+
+    for (int i = 38; i < 64; i += 2)
+    {
+        m_game_state.enemies[i] = Entity(
+            pumpkin_dude_texture_id,        // texture id
+            enemy_animation,                // animations
+            16,                             // frames per second
+            4,                              // animation frame amount
+            0,                              // current animation index
+            4,                              // animation column amount
+            4,                              // animation row amount
+            0.6f,                           // width
+            0.9f,                           // height
+            4.0f,                           // speed
+            800,                            // health
+            1,                              // attack
+            0,                              // angle
+            ENEMY                           // Entity Type
+        );
+
+        m_game_state.enemies[i].set_position(glm::vec3(39.0f + ((i - 38) / 2) * 1.0f, -3.0f, 0.0f));
+        m_game_state.enemies[i].set_scale(glm::vec3(0.6f, 0.9f, 1.0f));
+        m_game_state.enemies[i].set_ai_type(THROWER);
+        m_game_state.enemies[i].set_damage_cooldown(0.5f);
+        m_game_state.enemies[i].set_projectile(pumpkin_texture_id);
+        m_game_state.enemies[i].set_max_distance(10.0f);
+        m_game_state.enemies[i + 1] = Entity();
+        m_game_state.enemies[i + 1].deactivate();
+    }
+
+    for (int i = 64; i < 65; i++)
+    {
+        m_game_state.enemies[i] = Entity(
+            big_demon_texture_id,
+            enemy_animation,
+            8,
+            4,
+            1,
+            4,
+            4,
+            1.6f * 1.2f,
+            1.8f * 1.2f,
+            4.0f,
+            2000,
+            6,
+            0,
+            ENEMY
+        );
+        m_game_state.enemies[i].set_position(glm::vec3(45.0f, -8.0f, 0.0f));
+        m_game_state.enemies[i].set_scale(glm::vec3(1.6f*1.2f, 1.8f*1.2f, 1.0f));
+        m_game_state.enemies[i].set_attack_cooldown(0.20f);
+        m_game_state.enemies[i].set_damage_cooldown(0.20f);
+        m_game_state.enemies[i].set_ai_type(CHARGE);
+        m_game_state.enemies[i].set_ai_state(IDLE);
+        m_game_state.enemies[i].set_origin(glm::vec3(45.0f, -8.0f, 0.0f));
+        m_game_state.enemies[i].set_max_distance(5.0f);
+    }
 
 
 
@@ -268,10 +382,11 @@ bool LevelB::update(float delta_time)
 
     for (int i = 0; i < LEVELB_ENEMY_COUNT; i++)
     {
-        m_game_state.enemies[i].update(delta_time, m_game_state.player, nullptr, 0, m_game_state.map);
         if (m_game_state.enemies[i].get_ai_type() == SHOOTER || m_game_state.enemies[i].get_ai_type() == THROWER) {
             m_game_state.enemies[i].shooter_update(delta_time, m_game_state.player, m_game_state.enemies, i+1);
         }
+        m_game_state.enemies[i].update(delta_time, m_game_state.player, nullptr, 0, m_game_state.map);
+
     }
 
     if (win_condition())
@@ -318,7 +433,7 @@ void LevelB::render(ShaderProgram* program)
 
 bool LevelB::win_condition()
 {
-    return false;
+    return !m_game_state.enemies[64].is_active();
 }
 
 
