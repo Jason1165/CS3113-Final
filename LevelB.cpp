@@ -20,6 +20,8 @@ constexpr char WEAPON_ANIME_SWORD[] = "assets/sprites/weapon_anime_sword.png"; /
 
 constexpr char SKELETON_FILEPATH[] = "assets/sprites/skelet_anim.png"; // 16 x 16
 constexpr char BONE_FILEPATH[] = "assets/sprites/bone.png"; // 12 x 24
+constexpr char PUMPKIN_DUDE_FILEPATH[] = "assets/sprites/pumpkin_dude_anim.png"; // 16 x 23
+constexpr char PUMPKIN_HEAD_FILEPATH[] = "assets/sprites/pumpkin_head.png"; // 16 x 16
 
 constexpr char FONT_FILEPATH[] = "assets/sprites/fontsheet_white.png";
 constexpr char HP_POTION_FILEPATH[] = "assets/sprites/PotionL_Red.png";
@@ -158,6 +160,9 @@ void LevelB::initialise()
 
     GLuint skeleton_texture_id = Utility::load_texture(SKELETON_FILEPATH);
     GLuint bone_texture_id = Utility::load_texture(BONE_FILEPATH);
+    GLuint pumpkin_dude_texture_id = Utility::load_texture(PUMPKIN_DUDE_FILEPATH);
+    GLuint pumpkin_texture_id = Utility::load_texture(PUMPKIN_HEAD_FILEPATH);
+    
 
     std::vector<std::vector<int>> enemy_animation = {
         {4, 5, 6, 7},
@@ -173,7 +178,7 @@ void LevelB::initialise()
         {0, 1, 2, 3}
     };
 
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < 10; i += 2)
     {
         m_game_state.enemies[i] = Entity(
             skeleton_texture_id,            // texture id
@@ -192,16 +197,45 @@ void LevelB::initialise()
             ENEMY                           // Entity Type
         );
 
-        m_game_state.enemies[i].set_position(glm::vec3(30.0f, -3.0f - (i*1.0f), 0.0f));
+        m_game_state.enemies[i].set_position(glm::vec3(30.0f, -3.0f - (i*0.5f), 0.0f));
         m_game_state.enemies[i].set_scale(glm::vec3(1.0f));
         m_game_state.enemies[i].set_ai_type(SHOOTER);
         m_game_state.enemies[i].set_projectile(bone_texture_id);
+        m_game_state.enemies[i].set_max_distance(5.0f);
+        m_game_state.enemies[i + 1] = Entity();
+        m_game_state.enemies[i + 1].deactivate();
     }
 
-    for (int i = 5; i < 10; i++) {
-        m_game_state.enemies[i] = Entity();
-        m_game_state.enemies[i].deactivate();
-    }
+    //for (int i = 10; i < 31; i += 3)
+    //{
+    //    m_game_state.enemies[i] = Entity(
+    //        pumpkin_dude_texture_id,        // texture id
+    //        enemy_animation,                // animations
+    //        16,                             // frames per second
+    //        4,                              // animation frame amount
+    //        0,                              // current animation index
+    //        4,                              // animation column amount
+    //        4,                              // animation row amount
+    //        0.6f,                           // width
+    //        0.9f,                           // height
+    //        4.0f,                           // speed
+    //        400,                            // health
+    //        1,                              // attack
+    //        0,                              // angle
+    //        ENEMY                           // Entity Type
+    //    );
+
+    //    m_game_state.enemies[i].set_position(glm::vec3(24.0f + (i-10 / 3) * 1.0f, -26.0f, 0.0f));
+    //    m_game_state.enemies[i].set_scale(glm::vec3(0.6f, 0.9f, 1.0f));
+    //    m_game_state.enemies[i].set_ai_type(THROWER);
+    //    m_game_state.enemies[i].set_projectile(pumpkin_texture_id);
+    //    m_game_state.enemies[i].set_max_distance(5.0f);
+    //    m_game_state.enemies[i + 1] = Entity();
+    //    m_game_state.enemies[i + 1].deactivate();
+    //    m_game_state.enemies[i + 2] = Entity();
+    //    m_game_state.enemies[i + 2].deactivate();
+    //}
+
 
 
     // ----- POTION ----- //
@@ -235,8 +269,8 @@ bool LevelB::update(float delta_time)
     for (int i = 0; i < LEVELB_ENEMY_COUNT; i++)
     {
         m_game_state.enemies[i].update(delta_time, m_game_state.player, nullptr, 0, m_game_state.map);
-        if (m_game_state.enemies[i].get_ai_type() == SHOOTER) {
-            m_game_state.enemies[i].shooter_update(delta_time, m_game_state.player, m_game_state.enemies, i+5);
+        if (m_game_state.enemies[i].get_ai_type() == SHOOTER || m_game_state.enemies[i].get_ai_type() == THROWER) {
+            m_game_state.enemies[i].shooter_update(delta_time, m_game_state.player, m_game_state.enemies, i+1);
         }
     }
 

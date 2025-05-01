@@ -43,9 +43,9 @@ Entity::Entity(GLuint texture_id, std::vector<std::vector<int>> animations, int 
     m_direction = AnimationDirection(animation_index);
 }
 
-Entity::Entity(GLuint texture_id, float height, float width, float speed, float angle, glm::vec3 scale, glm::vec3 movement, glm::vec3 position)
-    : m_texture_id(texture_id), m_height(height), m_width(width), m_speed(speed), m_angle(angle), m_scale(scale), m_movement(movement),
-    m_position(position)
+Entity::Entity(GLuint texture_id, float height, float width, float speed, float angle, int attack, glm::vec3 scale, glm::vec3 movement, glm::vec3 position, EntityType entity_type)
+    : m_texture_id(texture_id), m_height(height), m_width(width), m_speed(speed), m_angle(angle), m_attack(attack), m_scale(scale), m_movement(movement),
+    m_position(position), m_entity_type(entity_type)
 {
 }
 
@@ -190,21 +190,21 @@ void const Entity::check_collision_y(Map* map)
         m_position.y -= penetration_y;
         m_velocity.y = 0;
         m_collided_top = true;
-        if (this->m_entity_type == ENEMY) { m_movement.y *= -1.0f; }
+        if (this->m_entity_type == ENEMY || this->m_entity_type == PROJECTILE) { m_movement.y *= -1.0f; }
     }
     else if (map->is_solid(top_left, &penetration_x, &penetration_y) && m_velocity.y >= 0)
     {
         m_position.y -= penetration_y;
         m_velocity.y = 0;
         m_collided_top = true;
-        if (this->m_entity_type == ENEMY) { m_movement.y *= -1.0f; }
+        if (this->m_entity_type == ENEMY || this->m_entity_type == PROJECTILE) { m_movement.y *= -1.0f; }
     }
     else if (map->is_solid(top_right, &penetration_x, &penetration_y) && m_velocity.y >= 0)
     {
         m_position.y -= penetration_y;
         m_velocity.y = 0;
         m_collided_top = true;
-        if (this->m_entity_type == ENEMY) { m_movement.y *= -1.0f; }
+        if (this->m_entity_type == ENEMY || this->m_entity_type == PROJECTILE) { m_movement.y *= -1.0f; }
     }
 
     // And the bottom three points
@@ -213,21 +213,21 @@ void const Entity::check_collision_y(Map* map)
         m_position.y += penetration_y;
         m_velocity.y = 0;
         m_collided_bottom = true;
-        if (this->m_entity_type == ENEMY) { m_movement.y *= -1.0f; }
+        if (this->m_entity_type == ENEMY || this->m_entity_type == PROJECTILE) { m_movement.y *= -1.0f; }
     }
     else if (map->is_solid(bottom_left, &penetration_x, &penetration_y) && m_velocity.y <= 0)
     {
         m_position.y += penetration_y;
         m_velocity.y = 0;
         m_collided_bottom = true;
-        if (this->m_entity_type == ENEMY) { m_movement.y *= -1.0f; }
+        if (this->m_entity_type == ENEMY || this->m_entity_type == PROJECTILE) { m_movement.y *= -1.0f; }
     }
     else if (map->is_solid(bottom_right, &penetration_x, &penetration_y) && m_velocity.y <= 0)
     {
         m_position.y += penetration_y;
         m_velocity.y = 0;
         m_collided_bottom = true;
-        if (this->m_entity_type == ENEMY) { m_movement.y *= -1.0f; }
+        if (this->m_entity_type == ENEMY || this->m_entity_type == PROJECTILE) { m_movement.y *= -1.0f; }
     }
 }
 
@@ -245,14 +245,14 @@ void const Entity::check_collision_x(Map* map)
         m_position.x += penetration_x;
         m_velocity.x = 0;
         m_collided_left = true;
-        if (this->m_entity_type == ENEMY) { m_movement.x *= -1.0f; }
+        if (this->m_entity_type == ENEMY || this->m_entity_type == PROJECTILE) { m_movement.x *= -1.0f; }
     }
     if (map->is_solid(right, &penetration_x, &penetration_y) && m_velocity.x >= 0)
     {
         m_position.x -= (penetration_x += 0.001f);
         m_velocity.x = 0;
         m_collided_right = true;
-        if (this->m_entity_type == ENEMY) { m_movement.x *= -1.0f; }
+        if (this->m_entity_type == ENEMY || this->m_entity_type == PROJECTILE) { m_movement.x *= -1.0f; }
     }
 }
 
@@ -267,6 +267,7 @@ bool Entity::update(float delta_time, Entity* player, Entity* collidable_entitie
     m_collided_right = false;
 
     if (m_entity_type == ENEMY) ai_activate(player, delta_time);
+    if (m_entity_type == PROJECTILE) projectile_update(player, delta_time);
 
     // let the weapon damage the enemies here
     if (m_entity_type == WEAPON)
@@ -358,11 +359,25 @@ void Entity::shooter_update(float delta_time, Entity* player, Entity* projectile
     glm::vec3 direction = player->get_position() - m_position;
     direction = glm::normalize(direction);
     if (projectiles[ind].is_active()) { return;  }
-    if (glm::distance(player->get_position(), m_position) <= 5.0f) {
-        projectiles[ind] = Entity(m_projectile_id, 0.25f, 0.5f, 4.0f, 0.0f, glm::vec3(0.25f, 0.5f, 0.0f), direction, m_position);
-        projectiles[ind].activate();
-        std::cout << "HERE" << std::endl;
+    if (!this->is_active()) { return;  }
+    if (m_ai_type == SHOOTER) {
+        if (glm::distance(player->get_position(), m_position) <= m_distance) {
+            projectiles[ind] = Entity(m_projectile_id, 0.25f, 0.5f, 4.0f, 0.0f, 5, glm::vec3(0.25f, 0.5f, 0.0f), direction, m_position, PROJECTILE);
+            projectiles[ind].set_projectile_type(BONE);
+            projectiles[ind].set_attack_cooldown(5.0f);
+            projectiles[ind].activate();
+        }
     }
+    //if (m_ai_type == THROWER) 
+    //{
+    //    if (glm::distance(player->get_position(), m_position) <= m_distance) {
+    //        projectiles[ind] = Entity(m_projectile_id, 0.25f, 0.25f, 6.0f, 0.0f, 5, glm::vec3(0.25f, 0.25f, 0.0f), direction, m_position, PROJECTILE);
+    //        projectiles[ind].set_projectile_type(BALL);
+    //        projectiles[ind].set_attack_cooldown(25.0f);
+    //        projectiles[ind].activate();
+    //    }
+    //}
+
 }
 
 void Entity::ai_activate(Entity* player, float delta_time)
@@ -448,7 +463,24 @@ void Entity::ai_charge(Entity* player)
     }
 }
 
-void Entity::ai_shooter(Entity* player) { }
+void Entity::projectile_update(Entity* player, float delta_time)
+{
+    switch (m_projectile_type)
+    {
+    case BONE:
+        m_last_attack += delta_time;
+        if (m_last_attack >= m_attack_cooldown) 
+        {
+            this->deactivate();
+            m_last_attack = 0.0f;
+        }
+        m_angle += delta_time * 360.0f * m_speed / 2.0f;
+        if (m_angle >= 360.0f) { m_angle -= 360.0f; }
+        break;
+    default:
+        break;
+    }
+}
 
 void Entity::weapon_activate(Entity* player, float delta_time)
 {
@@ -559,7 +591,14 @@ bool Entity::player_update(float delta_time, Entity* collidable_entities, int co
                         this->m_speed += collidable_entities[i].get_speed();
                         this->m_health += collidable_entities[i].get_hp();
                         collidable_entities[i].take_damage(collidable_entities[i].get_hp());
+                        collidable_entities[i].deactivate();
                     }
+                }
+                else if (collidable_entities[i].get_entity_type() == PROJECTILE)
+                {
+                    this->take_damage(collidable_entities[i].get_attack());
+                    collidable_entities[i].deactivate();
+                    collidable_entities[i].set_last_attack(0.0f);
                 }
             }
         }
@@ -587,7 +626,7 @@ bool Entity::weapon_update(float delta_time, Entity* collidable_entities, int co
             if (check_collision_SAT(&collidable_entities[i]))
             {
                 collided = true;
-                if (collidable_entities[i].get_hp() <= 0)
+                if (m_attack_state != HOLD && collidable_entities[i].get_hp() <= 0)
                 {
                     collidable_entities[i].deactivate();
                 }

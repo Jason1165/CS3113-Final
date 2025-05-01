@@ -6,13 +6,14 @@
 #include "ShaderProgram.h"
 #include "SDL_mixer.h"
 
-enum EntityType { PLAYER, ENEMY, WEAPON, POTION };
+enum EntityType { PLAYER, ENEMY, WEAPON, POTION, PROJECTILE };
 enum WeaponType { SWORD };
 
 enum AttackState { HOLD, REG_START, REG_ATTACK, ULT_START, ULT_ATTACK };
 
-enum AIType {GUARD, WALKER, CHARGE, SHOOTER};
+enum AIType {GUARD, WALKER, CHARGE, SHOOTER, THROWER};
 enum AIState {IDLE, ATTACK};
+enum ProjectileType {BONE, BALL};
 
 enum AnimationDirection { LEFT, RIGHT, IDLE_LEFT, IDLE_RIGHT, HIT_LEFT, HIT_RIGHT };
 
@@ -26,6 +27,7 @@ protected:
 	AnimationDirection m_direction;
 	AttackState m_attack_state;
 	WeaponType m_weapon_type;
+	ProjectileType m_projectile_type;
 
 	// ----- ACTIVE ----- //
 	bool m_is_active = true;
@@ -89,7 +91,7 @@ protected:
 public:
 	Entity();
 	Entity(GLuint texture_id, std::vector<std::vector<int>> animations, int fps, int animation_frames, int animation_index, int animation_cols, int animation_rows, float width, float height, float speed, int health, int attack, float angle, EntityType entity_type);
-	Entity(GLuint texture_id, float height, float width, float speed, float angle, glm::vec3 scale, glm::vec3 movement, glm::vec3 position);
+	Entity(GLuint texture_id, float height, float width, float speed, float angle, int attack, glm::vec3 scale, glm::vec3 movement, glm::vec3 position, EntityType entity_type);
 	~Entity();
 
 	// ----- METHODS ----- //
@@ -109,9 +111,9 @@ public:
 	void ai_guard(Entity* player);
 	void ai_walker(Entity* player);
 	void ai_charge(Entity* player);
-	void ai_shooter(Entity* player);
 	void shooter_update(float delta_time, Entity* player, Entity* projectiles, int ind);
 	void weapon_activate(Entity* player, float delta_time);
+	void projectile_update(Entity* player, float delta_time);
 	void ai_sword(Entity* player, float delta_time);
 
 	void normalise_movement() { m_movement = glm::normalize(m_movement); }
@@ -147,6 +149,7 @@ public:
 	AIType		const get_ai_type()			const { return m_ai_type; }
 	AIState		const get_ai_state()		const { return m_ai_state; }
 	WeaponType	const get_weapon_type()		const { return m_weapon_type; }
+	ProjectileType const get_projectile_type() const{ return m_projectile_type; }
 	glm::vec3	const get_position()		const { return m_position; }
 	glm::vec3	const get_velocity()		const { return m_velocity; }
 	glm::vec3	const get_acceleration()	const { return m_acceleration; }
@@ -195,6 +198,7 @@ public:
 	void const set_animation_index(int new_index) { m_animation_index = new_index; }
 	void const set_animation_time(float new_time) { m_animation_time = new_time; }
 	void const set_projectile(GLuint new_projectile) { m_projectile_id = new_projectile; }
+	void const set_projectile_type(ProjectileType new_projectiletype) { m_projectile_type = new_projectiletype; }
 
 	// ----- NEW STUFF
 	void const set_width(float new_width) { m_width = new_width; }

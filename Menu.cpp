@@ -7,7 +7,9 @@
 constexpr char WALLS_FILEPATH[] = "assets/sprites/atlas_tilesheet.png"; // 16 * 28, 4:7, 1.0f, 1.75f
 constexpr char PLAYER_FILEPATH[] = "assets/sprites/knight_m_anim.png";
 
-constexpr char FONT_FILEPATH[] = "";
+constexpr char FONT_FILEPATH[] = "assets/sprites/fontsheet_white.png";
+GLuint fontsheet_id0;
+
 
 unsigned int MENU_DATA[] =
 {
@@ -39,6 +41,7 @@ Menu::~Menu()
 
 void Menu::initialise()
 {
+    fontsheet_id0 = Utility::load_texture(FONT_FILEPATH);
     m_game_state.next_scene_id = -1;
 
     GLuint map_texture_id = Utility::load_texture(WALLS_FILEPATH);
@@ -89,17 +92,23 @@ void Menu::initialise()
 
 bool Menu::update(float delta_time)
 {
+    menu_time_accumulator += delta_time;
+    if (menu_time_accumulator >= 8.0f) menu_time_accumulator -= 8.0f;
     m_game_state.player->update(delta_time, m_game_state.player, m_game_state.enemies, MENU_ENEMY_COUNT, m_game_state.map);
     return false;
 }
 
 void Menu::render(ShaderProgram* program)
 {
-    //GLuint fontsheet_id = Utility::load_texture(FONT_FILEPATH);
+    float alpha_calc = 2 - glm::sqrt(abs(menu_time_accumulator - 4.0f));
+    program->set_alpha(alpha_calc/2);
+
     m_game_state.map->render(program);
     m_game_state.player->render(program);
-    //Utility::draw_text(program, fontsheet_id, "A Platformer Game", 0.4f, 0.05f, glm::vec3(-3.5f, 2.0f, 0.0f));
-    //Utility::draw_text(program, fontsheet_id, "Press ENTER", 0.25f, 0.05f, glm::vec3(-1.3f, -2.0f, 0.0f));
-    //Utility::draw_text(program, fontsheet_id, "to START!", 0.25f, 0.05f, glm::vec3(-1.0f, -2.5f, 0.0f));
+    Utility::draw_text(program, fontsheet_id0, "Dungeon Dungeon", 0.4f, 0.05f, glm::vec3(-3.0f + 7.0f, 2.0f - 7.0f, 0.0f));
+    Utility::draw_text(program, fontsheet_id0, "Press ENTER", 0.25f, 0.05f, glm::vec3(-1.3f + 7.0f, -2.0f - 7.0f, 0.0f));
+    Utility::draw_text(program, fontsheet_id0, "to START!", 0.25f, 0.05f, glm::vec3(-1.0f + 7.0f, -2.5f - 7.0f, 0.0f));
+    Utility::draw_text(program, fontsheet_id0, "WASD or Arrow Keys", 0.25f, 0.05f, glm::vec3(-2.4f + 7.0f, -3.0f - 7.0f, 0.0f));
+    Utility::draw_text(program, fontsheet_id0, "R & F to Deal Damage", 0.25f, 0.05f, glm::vec3(-2.75f + 7.0f, -3.5f - 7.0f, 0.0f));
 
 }

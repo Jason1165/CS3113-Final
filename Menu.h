@@ -4,6 +4,7 @@ class Menu : public Scene
 {
 public:
     int MENU_ENEMY_COUNT = 0;
+    float menu_time_accumulator = 0.0f;
 
     ~Menu();
 
