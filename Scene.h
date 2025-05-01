@@ -29,11 +29,9 @@ struct GameState
 
     // ----- AUDIO ----- //
     Mix_Music* bgm;
-    Mix_Chunk* death_sfx;
 
     // -----POINTERS TO OTHER SCENES ----- //
     int next_scene_id;
-    int lives;
 };
 
 class Scene

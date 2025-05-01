@@ -11,7 +11,7 @@ enum WeaponType { SWORD };
 
 enum AttackState { HOLD, REG_START, REG_ATTACK, ULT_START, ULT_ATTACK };
 
-enum AIType {GUARD, WALKER, CHARGE};
+enum AIType {GUARD, WALKER, CHARGE, SHOOTER};
 enum AIState {IDLE, ATTACK};
 
 enum AnimationDirection { LEFT, RIGHT, IDLE_LEFT, IDLE_RIGHT, HIT_LEFT, HIT_RIGHT };
@@ -44,6 +44,7 @@ protected:
 
 	// ----- TEXTURE ----- //
 	GLuint m_texture_id;
+	GLuint m_projectile_id;
 
 	// ----- ANIMATION ----- //
 	std::vector<std::vector<int>> m_animation;
@@ -88,6 +89,7 @@ protected:
 public:
 	Entity();
 	Entity(GLuint texture_id, std::vector<std::vector<int>> animations, int fps, int animation_frames, int animation_index, int animation_cols, int animation_rows, float width, float height, float speed, int health, int attack, float angle, EntityType entity_type);
+	Entity(GLuint texture_id, float height, float width, float speed, float angle, glm::vec3 scale, glm::vec3 movement, glm::vec3 position);
 	~Entity();
 
 	// ----- METHODS ----- //
@@ -107,6 +109,8 @@ public:
 	void ai_guard(Entity* player);
 	void ai_walker(Entity* player);
 	void ai_charge(Entity* player);
+	void ai_shooter(Entity* player);
+	void shooter_update(float delta_time, Entity* player, Entity* projectiles, int ind);
 	void weapon_activate(Entity* player, float delta_time);
 	void ai_sword(Entity* player, float delta_time);
 
@@ -190,6 +194,7 @@ public:
 	void const set_animation_frames(int new_frames) { m_animation_frames = new_frames; }
 	void const set_animation_index(int new_index) { m_animation_index = new_index; }
 	void const set_animation_time(float new_time) { m_animation_time = new_time; }
+	void const set_projectile(GLuint new_projectile) { m_projectile_id = new_projectile; }
 
 	// ----- NEW STUFF
 	void const set_width(float new_width) { m_width = new_width; }
@@ -224,6 +229,7 @@ public:
 	void take_damage(int damage) { m_health -= damage;  }
 	void const set_max_distance(float new_max_distance) { m_distance = new_max_distance;  }
 	void const set_origin(glm::vec3 new_origin) { m_origin = new_origin; }
+	void const set_hp(int new_hp) { m_health = new_hp; }
 
 };
 

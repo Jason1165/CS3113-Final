@@ -16,11 +16,10 @@
 
 constexpr char WALLS_FILEPATH[] = "assets/sprites/atlas_tilesheet.png"; // 16 * 28, 4:7, 1.0f, 1.75f
 constexpr char PLAYER_FILEPATH[] = "assets/sprites/knight_m_anim.png";
-
-constexpr char BIG_DEMON_FILEPATH[] = "assets/sprites/big_demon_anim.png"; // 32 x 26, 8:9, 1.0f, 1.125f
-constexpr char CHORT_FILEPATH[] = "assets/sprites/chort_anim.png"; // 16 x 23, 2:3, 0.8, 1.2
-constexpr char NECROMANCER_FILEPATH[] = "assets/sprites/necromancer_anim.png"; // 16 x 23
 constexpr char WEAPON_ANIME_SWORD[] = "assets/sprites/weapon_anime_sword.png"; // 12 x 30, 2:5, 1.0f, 2.5f
+
+constexpr char SKELETON_FILEPATH[] = "assets/sprites/skelet_anim.png"; // 16 x 16
+constexpr char BONE_FILEPATH[] = "assets/sprites/bone.png"; // 12 x 24
 
 constexpr char FONT_FILEPATH[] = "assets/sprites/fontsheet_white.png";
 constexpr char HP_POTION_FILEPATH[] = "assets/sprites/PotionL_Red.png";
@@ -79,7 +78,6 @@ LevelB::~LevelB()
     delete    m_game_state.map;
     delete    m_game_state.weapon;
     Mix_FreeMusic(m_game_state.bgm);
-    Mix_FreeChunk(m_game_state.death_sfx);
 }
 
 void LevelB::initialise()
@@ -157,20 +155,9 @@ void LevelB::initialise()
 
     // ----- ENEMIES ----- //
     m_game_state.enemies = new Entity[LEVELB_ENEMY_COUNT];
-    GLuint big_demon_texture_id = Utility::load_texture(BIG_DEMON_FILEPATH);
-    float big_demon_width = 1.6f;
-    float big_demon_height = 1.8f;
-    glm::vec3 big_demon_scale = glm::vec3(big_demon_width, big_demon_height, 1.0f);
 
-    GLuint chort_texture_id = Utility::load_texture(CHORT_FILEPATH);
-    float chort_width = 0.8f;
-    float chort_height = 1.2f;
-    glm::vec3 chort_scale = glm::vec3(chort_width, chort_height, 1.0f);
-
-    GLuint necromancer_texture_id = Utility::load_texture(NECROMANCER_FILEPATH);
-    float necromancer_width = 0.8f;
-    float necromancer_height = 1.2f;
-    glm::vec3 necromancer_scale = glm::vec3(necromancer_width, necromancer_height, 1.0f);
+    GLuint skeleton_texture_id = Utility::load_texture(SKELETON_FILEPATH);
+    GLuint bone_texture_id = Utility::load_texture(BONE_FILEPATH);
 
     std::vector<std::vector<int>> enemy_animation = {
         {4, 5, 6, 7},
@@ -186,8 +173,38 @@ void LevelB::initialise()
         {0, 1, 2, 3}
     };
 
+    for (int i = 0; i < 5; i++)
+    {
+        m_game_state.enemies[i] = Entity(
+            skeleton_texture_id,            // texture id
+            enemy_animation,                // animations
+            16,                             // frames per second
+            4,                              // animation frame amount
+            0,                              // current animation index
+            4,                              // animation column amount
+            4,                              // animation row amount
+            1.0f,                           // width
+            1.0f,                           // height
+            4.0f,                           // speed
+            100,                            // health
+            1,                              // attack
+            0,                              // angle
+            ENEMY                           // Entity Type
+        );
 
-    // POTION ENTITY
+        m_game_state.enemies[i].set_position(glm::vec3(30.0f, -3.0f - (i*1.0f), 0.0f));
+        m_game_state.enemies[i].set_scale(glm::vec3(1.0f));
+        m_game_state.enemies[i].set_ai_type(SHOOTER);
+        m_game_state.enemies[i].set_projectile(bone_texture_id);
+    }
+
+    for (int i = 5; i < 10; i++) {
+        m_game_state.enemies[i] = Entity();
+        m_game_state.enemies[i].deactivate();
+    }
+
+
+    // ----- POTION ----- //
     GLuint health_potion_id = Utility::load_texture(HP_POTION_FILEPATH);
     GLuint sp_potion_id = Utility::load_texture(SP_POTION_FILEPATH);
     std::vector<std::vector<int>> potion_animation =
@@ -205,12 +222,12 @@ void LevelB::initialise()
      //Mix_VolumeMusic(MIX_MAX_VOLUME / 2);
 
      //m_game_state.jump_sfx = Mix_LoadWAV(JUMP_FILEPATH);
-     //m_game_state.death_sfx = Mix_LoadWAV(DEATH_FILEPATH);
 }
 
 bool LevelB::update(float delta_time)
 {
     bool collide_with_enemy = m_game_state.player->update(delta_time, m_game_state.player, m_game_state.enemies, LEVELB_ENEMY_COUNT, m_game_state.map);
+
     m_game_state.weapon->update(delta_time, m_game_state.player, m_game_state.enemies, LEVELB_ENEMY_COUNT, m_game_state.map);
 
     spawn_enemy(delta_time);
@@ -218,6 +235,9 @@ bool LevelB::update(float delta_time)
     for (int i = 0; i < LEVELB_ENEMY_COUNT; i++)
     {
         m_game_state.enemies[i].update(delta_time, m_game_state.player, nullptr, 0, m_game_state.map);
+        if (m_game_state.enemies[i].get_ai_type() == SHOOTER) {
+            m_game_state.enemies[i].shooter_update(delta_time, m_game_state.player, m_game_state.enemies, i+5);
+        }
     }
 
     if (win_condition())
@@ -235,29 +255,13 @@ bool LevelB::update(float delta_time)
 
 void LevelB::render(ShaderProgram* program)
 {
-    float alpha_calc = 0.5;
-    if (m_game_state.player->get_hp() >= 1150)
-    {
-        alpha_calc = 0.25f;
-    }
-    else if (m_game_state.player->get_hp() >= 900)
-    {
-        alpha_calc = 0.5f;
-    }
-    else if (m_game_state.player->get_hp() >= 650)
-    {
-        alpha_calc = 1.0f;
-    }
-    else if (m_game_state.player->get_hp() >= 400) {
-        alpha_calc = 1.5f;
-    }
-    else if (m_game_state.player->get_hp() >= 150) {
-        alpha_calc = 2.0f;
-    }
-    else
-    {
-        alpha_calc = 3.0f;
-    }
+    float alpha_calc = 0.5; // default
+    if (m_game_state.player->get_hp() >= 1150) { alpha_calc = 0.25f; }
+    else if (m_game_state.player->get_hp() >= 900) { alpha_calc = 0.5f; }
+    else if (m_game_state.player->get_hp() >= 650) { alpha_calc = 1.0f; }
+    else if (m_game_state.player->get_hp() >= 400) { alpha_calc = 1.5f; }
+    else if (m_game_state.player->get_hp() >= 150) { alpha_calc = 2.0f; }
+    else { alpha_calc = 3.0f; }
     program->set_alpha(alpha_calc);
 
     m_game_state.map->render(program);
@@ -272,7 +276,7 @@ void LevelB::render(ShaderProgram* program)
 
     std::string phrase = "HP: " + std::to_string(m_game_state.player->get_hp());
     glm::vec3 phrase_pos = m_game_state.player->get_position();
-    phrase_pos.x -= 0.6;
+    phrase_pos.x -= 0.6f;
     phrase_pos.y += 0.8f;
     Utility::draw_text(program, fontsheet_idB, phrase, 0.2f, 0.01f, phrase_pos);
 }

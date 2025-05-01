@@ -43,6 +43,13 @@ Entity::Entity(GLuint texture_id, std::vector<std::vector<int>> animations, int 
     m_direction = AnimationDirection(animation_index);
 }
 
+Entity::Entity(GLuint texture_id, float height, float width, float speed, float angle, glm::vec3 scale, glm::vec3 movement, glm::vec3 position)
+    : m_texture_id(texture_id), m_height(height), m_width(width), m_speed(speed), m_angle(angle), m_scale(scale), m_movement(movement),
+    m_position(position)
+{
+}
+
+
 Entity::~Entity() 
 {
 }
@@ -260,13 +267,17 @@ bool Entity::update(float delta_time, Entity* player, Entity* collidable_entitie
     m_collided_right = false;
 
     if (m_entity_type == ENEMY) ai_activate(player, delta_time);
+
     // let the weapon damage the enemies here
     if (m_entity_type == WEAPON)
     {
         weapon_activate(player, delta_time);
         weapon_update(delta_time, collidable_entities, collidable_entity_count);
     }
+
     // let the enemies damage the player here
+    // potions help player here
+    // projectiles hurt the enemy here
     if (m_entity_type == PLAYER) 
     {
         player_update(delta_time, collidable_entities, collidable_entity_count);
@@ -336,6 +347,22 @@ void Entity::render(ShaderProgram* program)
 
     glDisableVertexAttribArray(program->get_position_attribute());
     glDisableVertexAttribArray(program->get_tex_coordinate_attribute());
+}
+
+
+// Entity* projectiles is an array of projectiles
+// int ind is the indice we are trying to insert the projectile into
+void Entity::shooter_update(float delta_time, Entity* player, Entity* projectiles, int ind)
+{
+    // only entities of the shooter type will call this function
+    glm::vec3 direction = player->get_position() - m_position;
+    direction = glm::normalize(direction);
+    if (projectiles[ind].is_active()) { return;  }
+    if (glm::distance(player->get_position(), m_position) <= 5.0f) {
+        projectiles[ind] = Entity(m_projectile_id, 0.25f, 0.5f, 4.0f, 0.0f, glm::vec3(0.25f, 0.5f, 0.0f), direction, m_position);
+        projectiles[ind].activate();
+        std::cout << "HERE" << std::endl;
+    }
 }
 
 void Entity::ai_activate(Entity* player, float delta_time)
@@ -421,6 +448,7 @@ void Entity::ai_charge(Entity* player)
     }
 }
 
+void Entity::ai_shooter(Entity* player) { }
 
 void Entity::weapon_activate(Entity* player, float delta_time)
 {
@@ -589,8 +617,8 @@ std::vector<glm::vec2> Entity::get_corners()
 
     if (m_entity_type == WEAPON)
     {
-        half_width *= 1.4;
-        half_height *= 1.4;
+        half_width *= 1.4f;
+        half_height *= 1.4f;
     }
 
     std::vector<glm::vec2> local_corners = 

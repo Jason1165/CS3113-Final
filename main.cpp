@@ -282,9 +282,6 @@ void update()
 void render()
 {
     g_shader_program.set_view_matrix(g_view_matrix);
-    
-    // dont need the next line cause setting view matrix already does that ig
-    // g_shader_program.set_light_position_matrix(g_current_scene->get_state().player->get_position());
 
     glClear(GL_COLOR_BUFFER_BIT);
 
@@ -297,7 +294,9 @@ void render()
 
 void shutdown()
 {
+    delete g_menu;
     delete g_levelA;
+    delete g_levelB;
     SDL_Quit();
 }
 
@@ -312,10 +311,12 @@ int main(int argc, char* argv[])
         update();
         if (g_current_scene->get_state().next_scene_id >= 0)
         {
+            int current_hp = g_current_scene->get_state().player->get_hp();
             int next_scene = g_current_scene->get_state().next_scene_id;
             if (next_scene >= 0)
             {
                 switch_to_scene(g_levels[next_scene]);
+                g_current_scene->get_state().player->set_hp(current_hp);
             }
         }
         render();

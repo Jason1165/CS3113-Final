@@ -25,7 +25,7 @@ constexpr char WEAPON_ANIME_SWORD[] = "assets/sprites/weapon_anime_sword.png"; /
 constexpr char FONT_FILEPATH[] = "assets/sprites/fontsheet_white.png";
 constexpr char HP_POTION_FILEPATH[] = "assets/sprites/PotionL_Red.png";
 constexpr char SP_POTION_FILEPATH[] = "assets/sprites/PotionL_Blue.png";
-GLuint fontsheet_id;
+GLuint fontsheet_idA;
 
 
 unsigned int LEVELA_DATA[] =
@@ -83,12 +83,11 @@ LevelA::~LevelA()
     delete    m_game_state.map;
     delete    m_game_state.weapon;
     Mix_FreeMusic(m_game_state.bgm);
-    Mix_FreeChunk(m_game_state.death_sfx);
 }
 
 void LevelA::initialise()
 {
-    fontsheet_id = Utility::load_texture(FONT_FILEPATH);
+    fontsheet_idA = Utility::load_texture(FONT_FILEPATH);
     m_game_state.next_scene_id = -1;
     srand(unsigned int(std::time(nullptr)));
 
@@ -288,7 +287,7 @@ void LevelA::initialise()
     }
 
 
-    // POTION ENTITY
+    // ----- POTION ----- //
     GLuint health_potion_id = Utility::load_texture(HP_POTION_FILEPATH);
     GLuint sp_potion_id = Utility::load_texture(SP_POTION_FILEPATH);
     std::vector<std::vector<int>> potion_animation =
@@ -365,7 +364,6 @@ void LevelA::initialise()
     //Mix_VolumeMusic(MIX_MAX_VOLUME / 2);
 
     //m_game_state.jump_sfx = Mix_LoadWAV(JUMP_FILEPATH);
-    //m_game_state.death_sfx = Mix_LoadWAV(DEATH_FILEPATH);
 }
 
 bool LevelA::update(float delta_time)
@@ -378,11 +376,14 @@ bool LevelA::update(float delta_time)
     for (int i = 0; i < LEVELA_ENEMY_COUNT; i++)
     {
         m_game_state.enemies[i].update(delta_time, m_game_state.player, nullptr, 0, m_game_state.map);
+        if (m_game_state.enemies[i].get_ai_type() == SHOOTER) {
+            m_game_state.enemies[i].shooter_update(delta_time, m_game_state.player, m_game_state.enemies, i);
+        }
     }
 
     if (win_condition())
     {
-        m_game_state.next_scene_id = 0;
+        m_game_state.next_scene_id = 2;
     }
     if (m_game_state.player->get_hp() <= 0)
     {
@@ -394,29 +395,13 @@ bool LevelA::update(float delta_time)
 
 void LevelA::render(ShaderProgram* program)
 {
-    float alpha_calc = 0.5;
-    if (m_game_state.player->get_hp() >= 1150) 
-    {
-        alpha_calc = 0.25f;
-    }
-    else if (m_game_state.player->get_hp() >= 900)
-    {
-        alpha_calc = 0.5f;
-    }
-    else if (m_game_state.player->get_hp() >= 650)
-    {
-        alpha_calc = 1.0f;
-    }
-    else if (m_game_state.player->get_hp() >= 400) {
-        alpha_calc = 1.5f;
-    }
-    else if (m_game_state.player->get_hp() >= 150) {
-        alpha_calc = 2.0f;
-    }
-    else 
-    {
-        alpha_calc = 3.0f;
-    }
+    float alpha_calc = 0.5; // default
+    if (m_game_state.player->get_hp() >= 1150) { alpha_calc = 0.25f; }
+    else if (m_game_state.player->get_hp() >= 900) { alpha_calc = 0.5f;}
+    else if (m_game_state.player->get_hp() >= 650) { alpha_calc = 1.0f;}
+    else if (m_game_state.player->get_hp() >= 400) { alpha_calc = 1.5f;}
+    else if (m_game_state.player->get_hp() >= 150) { alpha_calc = 2.0f;}
+    else { alpha_calc = 3.0f;}
     program->set_alpha(alpha_calc);
 
     m_game_state.map->render(program);
@@ -431,9 +416,9 @@ void LevelA::render(ShaderProgram* program)
 
     std::string phrase = "HP: " + std::to_string(m_game_state.player->get_hp());
     glm::vec3 phrase_pos = m_game_state.player->get_position();
-    phrase_pos.x -= 0.6;
+    phrase_pos.x -= 0.6f;
     phrase_pos.y += 0.8f;
-    Utility::draw_text(program, fontsheet_id, phrase, 0.2f, 0.01f, phrase_pos);
+    Utility::draw_text(program, fontsheet_idA, phrase, 0.2f, 0.01f, phrase_pos);
 }
 
 

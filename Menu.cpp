@@ -35,7 +35,6 @@ Menu::~Menu()
     delete    m_game_state.map;
     delete    m_game_state.weapon;
     Mix_FreeMusic(m_game_state.bgm);
-    Mix_FreeChunk(m_game_state.death_sfx);
 }
 
 void Menu::initialise()
@@ -86,7 +85,6 @@ void Menu::initialise()
     //Mix_VolumeMusic(MIX_MAX_VOLUME / 2);
 
     //m_game_state.jump_sfx = Mix_LoadWAV(JUMP_FILEPATH);
-    //m_game_state.death_sfx = Mix_LoadWAV(DEATH_FILEPATH);
 }
 
 bool Menu::update(float delta_time)
