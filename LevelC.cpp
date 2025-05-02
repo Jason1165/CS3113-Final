@@ -160,7 +160,7 @@ void LevelC::initialise()
         1.0f,                           // height
         4.0f,                           // speed
         0,                              // health
-        5000,                             // attack
+        50,                             // attack
         0,                              // angle
         WEAPON                          // Entity Type
     );
