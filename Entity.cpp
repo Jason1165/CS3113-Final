@@ -54,6 +54,7 @@ void Entity::init_projectile(GLuint texture_id, float height, float width, float
 
 Entity::~Entity() 
 {
+    Mix_FreeChunk(m_sound_sfx);
 }
 
 void Entity::draw_sprite_from_texture_atlas(ShaderProgram* program, GLuint texture_id, int index)
@@ -445,6 +446,7 @@ void Entity::ai_charge(Entity* player)
             if (m_movement.x < 0.0f) { face_left(); }
             else { face_right(); }
             m_ai_state = ATTACK;
+            if (m_sound_sfx != nullptr ) Mix_PlayChannel(-1, m_sound_sfx, 0);
         }
         break;
     case ATTACK:
@@ -538,7 +540,7 @@ void Entity::ai_sword(Entity* player, float delta_time)
         break;
     case REG_START:
         if (m_last_attack <= m_attack_cooldown) { m_attack_state = REG_START; m_last_attack += delta_time; }
-        else { m_last_attack = 0.0f; m_attack_state = REG_ATTACK; }
+        else { m_last_attack = 0.0f; m_attack_state = REG_ATTACK; Mix_PlayChannel(-1, m_sound_sfx, 0); }
         break;
     case REG_ATTACK:
         if (m_angle <= right_min && m_angle >= right_max) 
@@ -556,7 +558,7 @@ void Entity::ai_sword(Entity* player, float delta_time)
         break;
     case ULT_START:
         if (m_last_attack <= m_attack_cooldown*10) { m_attack_state = HOLD; m_last_attack += delta_time; }
-        else { m_last_attack = 0.0f; m_attack_state = ULT_ATTACK; }        
+        else { m_last_attack = 0.0f; m_attack_state = ULT_ATTACK; Mix_PlayChannel(-1, m_sound_sfx, 0); }
         break;
     case ULT_ATTACK:
         // using m_last_attack as a temp accumulator
@@ -601,6 +603,7 @@ bool Entity::player_update(float delta_time, Entity* collidable_entities, int co
                         this->m_health += collidable_entities[i].get_hp();
                         this->m_attack += collidable_entities[i].get_attack();
                         collidable_entities[i].take_damage(collidable_entities[i].get_hp());
+                        if (collidable_entities[i].m_sound_sfx != nullptr) Mix_PlayChannel(-1, collidable_entities[i].m_sound_sfx, 0);
                         collidable_entities[i].deactivate();
                     }
                 }

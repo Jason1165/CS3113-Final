@@ -1,13 +1,3 @@
-/**
-* Author: Jason Lin
-* Assignment: Rise of the AI
-* Date due: 2025-04-05, 11:59pm
-* I pledge that I have completed this assignment without
-* collaborating with anyone else, in conformance with the
-* NYU School of Engineering Policies and Procedures on
-* Academic Misconduct.
-**/
-
 #include "LevelB.h"
 #include "Utility.h"
 
@@ -23,11 +13,17 @@ constexpr char BONE_FILEPATH[] = "assets/sprites/bone.png"; // 12 x 24
 constexpr char PUMPKIN_DUDE_FILEPATH[] = "assets/sprites/pumpkin_dude_anim.png"; // 16 x 23
 constexpr char PUMPKIN_HEAD_FILEPATH[] = "assets/sprites/pumpkin_head.png"; // 16 x 16
 constexpr char BIG_DEMON_FILEPATH[] = "assets/sprites/big_demon_anim.png"; // 32 x 26, 8:9, 1.0f, 1.125f
+constexpr char BGM_FILEPATH[] = "assets/audio/Graveyard Shift.mp3";
 
 
 constexpr char FONT_FILEPATH[] = "assets/sprites/fontsheet_white.png";
 constexpr char HP_POTION_FILEPATH[] = "assets/sprites/PotionL_Red.png";
 constexpr char SP_POTION_FILEPATH[] = "assets/sprites/PotionL_Blue.png";
+constexpr char SWORD_SOUND_FILEPATH[] = "assets/audio/591155__ultraaxvii__sword-contact-with-swipe.wav";
+constexpr char DEMON_SOUND_FILEPATH[] = "assets/audio/527636__lilmati__demonic-anger.wav";
+constexpr char POTION_SOUND_FILEPATH[] = "assets/audio/523651__lilmati__powerup-05.wav";
+
+
 GLuint fontsheet_idB;
 
 
@@ -155,6 +151,7 @@ void LevelB::initialise()
     m_game_state.weapon->set_attack_cooldown(0.1f);
     m_game_state.weapon->set_attack_state(HOLD);
     m_game_state.weapon->set_weapon_type(SWORD);
+    m_game_state.weapon->set_sound(SWORD_SOUND_FILEPATH);
 
 
     // ----- ENEMIES ----- //
@@ -315,7 +312,7 @@ void LevelB::initialise()
         m_game_state.enemies[i].set_position(glm::vec3(39.0f + ((i - 38) / 2) * 1.0f, -3.0f, 0.0f));
         m_game_state.enemies[i].set_scale(glm::vec3(0.6f, 0.9f, 1.0f));
         m_game_state.enemies[i].set_ai_type(THROWER);
-        m_game_state.enemies[i].set_damage_cooldown(0.5f);
+        m_game_state.enemies[i].set_damage_cooldown(0.1f);
         m_game_state.enemies[i].set_projectile(pumpkin_texture_id);
         m_game_state.enemies[i].set_max_distance(10.0f);
         m_game_state.enemies[i + 1] = Entity();
@@ -348,6 +345,7 @@ void LevelB::initialise()
         m_game_state.enemies[i].set_ai_state(IDLE);
         m_game_state.enemies[i].set_origin(glm::vec3(45.0f, -8.0f, 0.0f));
         m_game_state.enemies[i].set_max_distance(5.0f);
+        m_game_state.enemies[i].set_sound(DEMON_SOUND_FILEPATH);
     }
 
 
@@ -378,6 +376,7 @@ void LevelB::initialise()
     );
     m_game_state.enemies[65].set_position(glm::vec3(17.0f, -25.0f, 0.0f));
     m_game_state.enemies[65].set_scale(glm::vec3(1.0f, 1.0f, 1.0f));
+    m_game_state.enemies[65].set_sound(POTION_SOUND_FILEPATH);
 
     m_game_state.enemies[66] = Entity(
         health_potion_id,                   // texture id
@@ -397,6 +396,7 @@ void LevelB::initialise()
     );
     m_game_state.enemies[66].set_position(glm::vec3(5.0f, -17.0f, 0.0f));
     m_game_state.enemies[66].set_scale(glm::vec3(1.0f, 1.0f, 1.0f));
+    m_game_state.enemies[66].set_sound(POTION_SOUND_FILEPATH);
 
     m_game_state.enemies[67] = Entity(
         health_potion_id,                   // texture id
@@ -416,19 +416,19 @@ void LevelB::initialise()
     );
     m_game_state.enemies[67].set_position(glm::vec3(52.0f, -36.0f, 0.0f));
     m_game_state.enemies[67].set_scale(glm::vec3(1.0f, 1.0f, 1.0f));
+    m_game_state.enemies[67].set_sound(POTION_SOUND_FILEPATH);
 
 
 
     /**
      BGM and SFX
      */
-     //Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 4096);
+     Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 4096);
 
-     //m_game_state.bgm = Mix_LoadMUS(BGM_FILEPATH);
-     //Mix_PlayMusic(m_game_state.bgm, -1);
-     //Mix_VolumeMusic(MIX_MAX_VOLUME / 2);
+     m_game_state.bgm = Mix_LoadMUS(BGM_FILEPATH);
+     Mix_PlayMusic(m_game_state.bgm, -1);
+     Mix_VolumeMusic(MIX_MAX_VOLUME / 2);
 
-     //m_game_state.jump_sfx = Mix_LoadWAV(JUMP_FILEPATH);
 }
 
 bool LevelB::update(float delta_time)

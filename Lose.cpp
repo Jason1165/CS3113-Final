@@ -6,6 +6,8 @@
 
 constexpr char WALLS_FILEPATH[] = "assets/sprites/atlas_tilesheet.png"; // 16 * 28, 4:7, 1.0f, 1.75f
 constexpr char PLAYER_FILEPATH[] = "assets/sprites/knight_m_anim.png";
+constexpr char BGM_FILEPATH[] = "assets/audio/Stay the Course.mp3";
+
 
 constexpr char FONT_FILEPATH[] = "assets/sprites/fontsheet_white.png";
 GLuint fontsheet_idlose;
@@ -82,12 +84,10 @@ void Lose::initialise()
     /**
      BGM and SFX
      */
-     //Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 4096);
-     //m_game_state.bgm = Mix_LoadMUS(BGM_FILEPATH);
-     //Mix_PlayMusic(m_game_state.bgm, -1);
-     //Mix_VolumeMusic(MIX_MAX_VOLUME / 2);
-
-     //m_game_state.jump_sfx = Mix_LoadWAV(JUMP_FILEPATH);
+     Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 4096);
+     m_game_state.bgm = Mix_LoadMUS(BGM_FILEPATH);
+     Mix_PlayMusic(m_game_state.bgm, -1);
+     Mix_VolumeMusic(MIX_MAX_VOLUME / 2);
 }
 
 bool Lose::update(float delta_time)

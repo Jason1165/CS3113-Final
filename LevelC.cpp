@@ -15,11 +15,16 @@ constexpr char PUMPKIN_HEAD_FILEPATH[] = "assets/sprites/pumpkin_head.png"; // 1
 constexpr char BIG_DEMON_FILEPATH[] = "assets/sprites/big_demon_anim.png"; // 32 x 26, 8:9, 1.0f, 1.125f
 constexpr char CHORT_FILEPATH[] = "assets/sprites/chort_anim.png"; // 16 x 23, 2:3, 0.8, 1.2
 constexpr char NECROMANCER_FILEPATH[] = "assets/sprites/necromancer_anim.png"; // 16 x 23
+constexpr char BGM_FILEPATH[] = "assets/audio/Myst on the Moor.mp3";
 
 
 constexpr char FONT_FILEPATH[] = "assets/sprites/fontsheet_white.png";
 constexpr char HP_POTION_FILEPATH[] = "assets/sprites/PotionL_Red.png";
 constexpr char SP_POTION_FILEPATH[] = "assets/sprites/PotionL_Blue.png";
+constexpr char SWORD_SOUND_FILEPATH[] = "assets/audio/591155__ultraaxvii__sword-contact-with-swipe.wav";
+constexpr char DEMON_SOUND_FILEPATH[] = "assets/audio/527636__lilmati__demonic-anger.wav";
+constexpr char POTION_SOUND_FILEPATH[] = "assets/audio/523651__lilmati__powerup-05.wav";
+
 GLuint fontsheet_idC;
 
 
@@ -144,7 +149,7 @@ void LevelC::initialise()
         1.0f,                           // height
         4.0f,                           // speed
         0,                              // health
-        50,                             // attack
+        5000,                             // attack
         0,                              // angle
         WEAPON                          // Entity Type
     );
@@ -153,6 +158,7 @@ void LevelC::initialise()
     m_game_state.weapon->set_attack_cooldown(0.2f);
     m_game_state.weapon->set_attack_state(HOLD);
     m_game_state.weapon->set_weapon_type(SWORD);
+    m_game_state.weapon->set_sound(SWORD_SOUND_FILEPATH);
 
 
     // ----- ENEMIES ----- //
@@ -406,6 +412,7 @@ void LevelC::initialise()
         m_game_state.enemies[i].set_ai_state(IDLE);
         m_game_state.enemies[i].set_origin(glm::vec3(11.5f, -28.5f, 0.0f));
         m_game_state.enemies[i].set_max_distance(4.5f);
+        m_game_state.enemies[i].set_sound(DEMON_SOUND_FILEPATH);
     }
 
 
@@ -435,6 +442,7 @@ void LevelC::initialise()
     );
     m_game_state.enemies[95].set_position(glm::vec3(12.0f, -42.0f, 0.0f));
     m_game_state.enemies[95].set_scale(glm::vec3(1.0f, 1.0f, 1.0f));
+    m_game_state.enemies[95].set_sound(POTION_SOUND_FILEPATH);
 
     m_game_state.enemies[96] = Entity(
         sp_potion_id,                   // texture id
@@ -454,6 +462,7 @@ void LevelC::initialise()
     );
     m_game_state.enemies[96].set_position(glm::vec3(43.0f, -41.0f, 0.0f));
     m_game_state.enemies[96].set_scale(glm::vec3(1.0f, 1.0f, 1.0f));
+    m_game_state.enemies[96].set_sound(POTION_SOUND_FILEPATH);
 
     m_game_state.enemies[97] = Entity(
         health_potion_id,               // texture id
@@ -473,18 +482,17 @@ void LevelC::initialise()
     );
     m_game_state.enemies[97].set_position(glm::vec3(51.0f, -12.0f, 0.0f));
     m_game_state.enemies[97].set_scale(glm::vec3(1.0f, 1.0f, 1.0f));
-
+    m_game_state.enemies[97].set_sound(POTION_SOUND_FILEPATH);
 
     /**
      BGM and SFX
      */
-     //Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 4096);
+     Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 4096);
 
-     //m_game_state.bgm = Mix_LoadMUS(BGM_FILEPATH);
-     //Mix_PlayMusic(m_game_state.bgm, -1);
-     //Mix_VolumeMusic(MIX_MAX_VOLUME / 2);
+     m_game_state.bgm = Mix_LoadMUS(BGM_FILEPATH);
+     Mix_PlayMusic(m_game_state.bgm, -1);
+     Mix_VolumeMusic(MIX_MAX_VOLUME / 2);
 
-     //m_game_state.jump_sfx = Mix_LoadWAV(JUMP_FILEPATH);
 }
 
 bool LevelC::update(float delta_time)

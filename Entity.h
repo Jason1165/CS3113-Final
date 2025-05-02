@@ -210,6 +210,7 @@ public:
 		Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 4096);
 		Mix_VolumeMusic(MIX_MAX_VOLUME / 2);
 		m_sound_sfx = Mix_LoadWAV(filepath);
+		Mix_VolumeChunk(m_sound_sfx, MIX_MAX_VOLUME / 4);
 	}
 
 	// ----- ATTACK STUFF
